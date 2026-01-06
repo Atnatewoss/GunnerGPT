@@ -1,12 +1,34 @@
+"""
+GunnerGPT Knowledge Base Ingestion Script
 
-# The main goal of this app: to have our knowledge base be stored in a db in a semantically searchable way. (read kb + embed + store)
+This script performs the following steps:
+1. Loads local text files from the Arsenal knowledge base
+2. Splits documents into overlapping semantic chunks
+3. Generates vector embeddings locally
+4. Uploads embeddings and metadata to Chroma Cloud for persistent storage
+"""
 
-# --- LOAD TEXT ---
-# Step-1: We have a knowledge base - /arsenal_kb locally that we want to read each content and have that in memory (basically loading text)
-
-# Walk the directory and read files
 from pathlib import Path
+from sentence_transformers import SentenceTransformer
+import chromadb
+from chromadb.config import Settings
+
+# ---------------------------------------------------------------------
+# Configuration
+# ---------------------------------------------------------------------
+
 KB_PATH = Path("arsenal_kb")
+COLLECTION_NAME = "gunnergpt_arsenal_kb"
+EMBEDDING_MODEL_NAME = "all-MiniLM-L6-v2"
+
+CHUNK_SIZE = 600
+CHUNK_OVERLAP = 120
+
+CHROMA_API_KEY = "YOUR_CHROMA_API_KEY"
+
+# ---------------------------------------------------------------------
+# Step 1: Load knowledge base files
+# ---------------------------------------------------------------------
 
 documents = []
 
@@ -20,34 +42,22 @@ for txt_file in KB_PATH.rglob("*.txt"):
             "category": txt_file.parent.name
         })
 
-# What we have now is: documents, a list of dicts with everything in memory.
+# ---------------------------------------------------------------------
+# Step 2: Chunk documents into semantic units
+# ---------------------------------------------------------------------
 
-# Each entry still contains a full file too big for emeddings, this is why chunking is mandatory.
-
-# Why chunking exists? because embedding models work best when the text is focused, 1 chunk = 1 idea, and retrieval returns just enough context.
-
-# If we embed whole file, retrieval becomes noisy, answers become vague, and we lose precision
-
-
-
-# --- CHUNKING ---
-# Step-2: Then we chunk that in-memory loaded text in portions
-# How to chunk? we'll use character-based chunking with overlap.
-# Recommended values (chunk size: 500-700 characters, overlap: 100-150 characters) this balances context continuty, and retrieval precision.
-
-def chunk_text(text, chunk_size=600, overlap=120):
+def chunk_text(text, chunk_size=CHUNK_SIZE, overlap=CHUNK_OVERLAP):
     chunks = []
     start = 0
 
     while start < len(text):
         end = start + chunk_size
-        chunk = text[start:end]
-        chunks.append(chunk)
+        chunks.append(text[start:end])
         start += chunk_size - overlap
 
     return chunks
 
-# Applying chunking to our documents
+
 chunked_documents = []
 
 for doc in documents:
@@ -55,107 +65,66 @@ for doc in documents:
 
     for i, chunk in enumerate(chunks):
         chunked_documents.append({
-            "id": f"{doc['source']}_{i}",
             "text": chunk,
             "source": doc["source"],
             "category": doc["category"],
             "chunk_id": i
         })
 
-# We now have small semantic units, metadata preserved, and ready for embedding. And this is the list that gets sent to the embedding model.
+# ---------------------------------------------------------------------
+# Step 3: Generate embeddings locally
+# ---------------------------------------------------------------------
 
-# _________________________________
+embedding_model = SentenceTransformer(EMBEDDING_MODEL_NAME)
 
-# TXT files
-#    ↓
-# Read into memory
-#    ↓
-# Chunked text + metadata   ← WE ARE HERE
-# _________________________________
+texts = [doc["text"] for doc in chunked_documents]
 
-# SUMMARY: We load local text files, split them into overlapping semantic chunks, preserve metadata, and embed each chunk into a vector database for similarity-based retrieval.
+embeddings = embedding_model.encode(
+    texts,
+    show_progress_bar=True,
+    normalize_embeddings=True
+)
 
-# Next step:
-# ________________________________________________
-# Chunked text
-#    ↓
-# Embedding model
-#    ↓
-# Vectors
-#    ↓
-# Chroma DB
-# ________________________________________________
+# ---------------------------------------------------------------------
+# Step 4: Connect to Chroma Cloud
+# ---------------------------------------------------------------------
 
-
-# --- EMEDDING ---
-# Step-3: Then we embed that chunk (meaning change the text into vector representations)
-from sentence_transformers import SentenceTransformer
-
-embedding_model = SentenceTransformer("all-MiniLM-L6-v2")
-
-# Why: Fast, Strong semantic quality, CPU-friendly, Industry standard
-
-
-# Step-4: Then store those vector representations in a vector-db supporting db (for our case chroma)
-# Initialize Chroma Cloud client
-
-import chromadb
-from chromadb.config import Settings
-import os
-
-chroma_client = chromadb.Client(
+client = chromadb.Client(
     Settings(
         chroma_api_impl="rest",
         chroma_server_host="api.trychroma.com",
         chroma_server_http_port=443,
         chroma_server_ssl_enabled=True,
-        tenant=os.environ["CHROMA_TENANT"],
-        database=os.environ["CHROMA_DATABASE"],
-        api_key=os.environ["CHROMA_API_KEY"],
+        anonymized_telemetry=False
     )
 )
 
-# Step-5: Create / get your collection, Collections are like tables.
-collection = chroma_client.get_or_create_collection(
-    name="arsenal_kb"
+client.set_api_key(CHROMA_API_KEY)
+
+collection = client.get_or_create_collection(
+    name=COLLECTION_NAME,
+    metadata={"description": "Arsenal FC knowledge base for GunnerGPT"}
 )
 
-# If it exists → reused
-# If not → created
-
-
-# Step-6: Embed + store chunks in chroma cloud (this is the key loop)
-from sentence_transformers import SentenceTransformer
-import uuid
-
-model = SentenceTransformer("all-MiniLM-L6-v2")
-
-texts = [doc["text"] for doc in chunked_documents]
-embeddings = model.encode(texts, show_progress_bar=True)
+# ---------------------------------------------------------------------
+# Step 5: Upload embeddings and metadata
+# ---------------------------------------------------------------------
 
 collection.add(
-    ids=[str(uuid.uuid4()) for _ in texts],
-    documents=texts,
+    documents=[doc["text"] for doc in chunked_documents],
     embeddings=embeddings.tolist(),
     metadatas=[
         {
             "source": doc["source"],
             "category": doc["category"],
-            "chunk_id": doc["chunk_id"],
+            "chunk_id": doc["chunk_id"]
         }
+        for doc in chunked_documents
+    ],
+    ids=[
+        f"{doc['source']}_{doc['chunk_id']}"
         for doc in chunked_documents
     ]
 )
 
-
-
-# Our final pipeline (conceptually)
-# TXT files
-#    ↓
-# Normalized text
-#    ↓
-# Overlapping semantic chunks
-#    ↓
-# SentenceTransformer embeddings
-#    ↓
-# Chroma vector store
+print(f"Ingested {len(chunked_documents)} chunks into Chroma Cloud.")
