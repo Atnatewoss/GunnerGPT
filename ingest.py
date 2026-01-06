@@ -11,7 +11,7 @@ This script performs the following steps:
 from pathlib import Path
 from sentence_transformers import SentenceTransformer
 import chromadb
-from chromadb.config import Settings
+
 
 # ---------------------------------------------------------------------
 # Configuration
@@ -89,17 +89,14 @@ embeddings = embedding_model.encode(
 # Step 4: Connect to Chroma Cloud
 # ---------------------------------------------------------------------
 
-client = chromadb.Client(
-    Settings(
-        chroma_api_impl="rest",
-        chroma_server_host="api.trychroma.com",
-        chroma_server_http_port=443,
-        chroma_server_ssl_enabled=True,
-        anonymized_telemetry=False
-    )
+client = chromadb.HttpClient(
+    host="api.trychroma.com",
+    port=443,
+    ssl=True,
+    headers={
+        "Authorization": f"Bearer {CHROMA_API_KEY}"
+    }
 )
-
-client.set_api_key(CHROMA_API_KEY)
 
 collection = client.get_or_create_collection(
     name=COLLECTION_NAME,
