@@ -60,12 +60,23 @@ async def initialize_services():
     embedding_success = await initialize_embedding_model()
     chroma_success = await initialize_chroma_client()
     
-    if not embedding_success or not chroma_success:
-        logger.warning("Some services failed to initialize")
-        return False
+    # Initialize LLM service
+    from ..services.llm_service import llm_service
+    llm_success = await llm_service.initialize()
     
-    logger.info("All services initialized successfully")
-    return True
+    if not embedding_success or not chroma_success:
+        logger.warning("Some core services failed to initialize")
+    
+    if not llm_success:
+        logger.warning("LLM service failed to initialize - fallback responses will be used")
+    
+    overall_success = embedding_success and chroma_success
+    if overall_success:
+        logger.info("Core services initialized successfully")
+    else:
+        logger.warning("Some services failed to initialize on startup")
+    
+    return overall_success
 
 
 def get_embedding_model():
