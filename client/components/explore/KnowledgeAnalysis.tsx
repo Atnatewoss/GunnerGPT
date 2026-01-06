@@ -23,9 +23,10 @@ interface KnowledgeAnalysisProps {
     query: string;
     isLoading: boolean;
     results: any | null; // This would ideally be typed once the backend returns structured data
+    isCompact?: boolean;
 }
 
-export function KnowledgeAnalysis({ query, isLoading, results }: KnowledgeAnalysisProps) {
+export function KnowledgeAnalysis({ query, isLoading, results, isCompact }: KnowledgeAnalysisProps) {
     if (isLoading) {
         return (
             <div className="h-full flex flex-col items-center justify-center p-12 space-y-6">
@@ -55,9 +56,9 @@ export function KnowledgeAnalysis({ query, isLoading, results }: KnowledgeAnalys
                     <FileText className="w-10 h-10 text-muted-foreground/30" />
                 </div>
                 <h2 className="text-2xl font-bold tracking-tight mb-2">Knowledge Nexus</h2>
-                <p className="text-muted-foreground max-w-md mx-auto leading-relaxed">
+                <p className="text-muted-foreground max-w-md mx-auto leading-relaxed text-sm">
                     The central hub for Arsenal tactical and historical intelligence.
-                    Enter a query or select a node from the sidebar to begin analysis.
+                    Enter a query to begin analysis.
                 </p>
             </div>
         );
@@ -88,38 +89,43 @@ export function KnowledgeAnalysis({ query, isLoading, results }: KnowledgeAnalys
 
     return (
         <div className="h-full flex flex-col bg-background animate-in fade-in duration-700">
-            <div className="p-6 border-b bg-card/10 flex items-center justify-between">
+            <div className={cn("p-6 border-b bg-card/10 flex items-center justify-between", isCompact && "p-3")}>
                 <div>
                     <div className="flex items-center space-x-2 text-red-600 mb-1">
                         <AlertCircle className="w-3.5 h-3.5" />
                         <span className="text-[10px] font-bold uppercase tracking-widest">Analytical Report</span>
                     </div>
-                    <h1 className="text-2xl font-bold tracking-tight">{mockAnalysis.title}</h1>
+                    <h1 className={cn("text-2xl font-bold tracking-tight", isCompact && "text-lg")}>{mockAnalysis.title}</h1>
                 </div>
-                <div className="flex items-center space-x-2">
-                    <Button variant="outline" size="icon" className="h-9 w-9">
-                        <Share2 className="w-4 h-4" />
-                    </Button>
-                    <Button variant="outline" size="icon" className="h-9 w-9">
-                        <Download className="w-4 h-4" />
-                    </Button>
-                </div>
+                {!isCompact && (
+                    <div className="flex items-center space-x-2">
+                        <Button variant="outline" size="icon" className="h-9 w-9">
+                            <Share2 className="w-4 h-4" />
+                        </Button>
+                        <Button variant="outline" size="icon" className="h-9 w-9">
+                            <Download className="w-4 h-4" />
+                        </Button>
+                    </div>
+                )}
             </div>
 
-            <div className="flex-1 overflow-y-auto p-6 space-y-8">
-                <section className="space-y-4">
+            <div className={cn("flex-1 overflow-y-auto p-6 space-y-8", isCompact && "p-4 space-y-4")}>
+                <section className={cn("space-y-4", isCompact && "space-y-2")}>
                     <div className="flex items-center space-x-2">
                         <div className="w-8 h-8 rounded-lg bg-red-50 flex items-center justify-center">
                             <FileText className="w-4 h-4 text-red-600" />
                         </div>
                         <h2 className="text-sm font-bold uppercase tracking-wider">Executive Summary</h2>
                     </div>
-                    <div className="bg-card/50 border rounded-xl p-5 leading-relaxed text-sm text-foreground/90 border-l-4 border-l-red-600">
+                    <div className={cn(
+                        "bg-card/50 border rounded-xl p-5 leading-relaxed text-sm text-foreground/90 border-l-4 border-l-red-600",
+                        isCompact && "p-3 text-xs"
+                    )}>
                         {mockAnalysis.summary}
                     </div>
                 </section>
 
-                <section className="space-y-6">
+                <section className={cn("space-y-6", isCompact && "space-y-3")}>
                     <div className="flex items-center space-x-2">
                         <div className="w-8 h-8 rounded-lg bg-red-50 flex items-center justify-center">
                             <Lightbulb className="w-4 h-4 text-red-600" />
@@ -131,13 +137,16 @@ export function KnowledgeAnalysis({ query, isLoading, results }: KnowledgeAnalys
                         {mockAnalysis.points.map((point, i) => {
                             const Icon = point.icon;
                             return (
-                                <div key={i} className="flex space-x-4 p-4 rounded-xl border bg-card/30 hover:bg-card/50 transition-colors">
+                                <div key={i} className={cn(
+                                    "flex space-x-4 p-4 rounded-xl border bg-card/30 hover:bg-card/50 transition-colors",
+                                    isCompact && "p-3 space-x-3"
+                                )}>
                                     <div className="mt-1">
-                                        <Icon className="w-5 h-5 text-red-600" />
+                                        <Icon className={cn("w-5 h-5 text-red-600", isCompact && "w-4 h-4")} />
                                     </div>
                                     <div className="space-y-1">
-                                        <h3 className="font-bold text-sm">{point.title}</h3>
-                                        <p className="text-sm text-muted-foreground leading-relaxed leading-normal">
+                                        <h3 className={cn("font-bold text-sm", isCompact && "text-xs")}>{point.title}</h3>
+                                        <p className={cn("text-sm text-muted-foreground leading-relaxed leading-normal", isCompact && "text-[11px]")}>
                                             {point.content}
                                         </p>
                                     </div>
@@ -163,19 +172,21 @@ export function KnowledgeAnalysis({ query, isLoading, results }: KnowledgeAnalys
                 </section>
             </div>
 
-            <div className="p-4 bg-muted/30 border-t flex items-center justify-between">
-                <div className="flex items-center space-x-3 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                    <span className="flex items-center">
-                        <Target className="w-3 h-3 mr-1.5" />
-                        Reasoning: Inductive
-                    </span>
-                    <Separator orientation="vertical" className="h-3" />
-                    <span>Confidence: 94.2%</span>
+            {!isCompact && (
+                <div className="p-4 bg-muted/30 border-t flex items-center justify-between">
+                    <div className="flex items-center space-x-3 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                        <span className="flex items-center">
+                            <Target className="w-3 h-3 mr-1.5" />
+                            Reasoning: Inductive
+                        </span>
+                        <Separator orientation="vertical" className="h-3" />
+                        <span>Confidence: 94.2%</span>
+                    </div>
+                    <div className="text-[10px] text-muted-foreground">
+                        GUNNER-GPT / KNOWLEDGE-ENGINE v4.0.1
+                    </div>
                 </div>
-                <div className="text-[10px] text-muted-foreground">
-                    GUNNER-GPT / KNOWLEDGE-ENGINE v4.0.1
-                </div>
-            </div>
+            )}
         </div>
     );
 }

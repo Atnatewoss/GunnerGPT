@@ -15,24 +15,27 @@ import { DocumentResult } from "@/types/api";
 interface SourceVerificationProps {
     sources: DocumentResult[];
     isLoading: boolean;
+    isCompact?: boolean;
 }
 
-export function SourceVerification({ sources, isLoading }: SourceVerificationProps) {
+export function SourceVerification({ sources, isLoading, isCompact }: SourceVerificationProps) {
     return (
         <div className="flex flex-col h-full bg-card/5 border-l">
-            <div className="p-4 border-b bg-card/30">
+            <div className={cn("p-4 border-b bg-card/30", isCompact && "p-2")}>
                 <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center space-x-2 text-red-600">
                         <ShieldCheck className="w-4 h-4" />
-                        <span className="text-xs font-bold uppercase tracking-[0.2em]">Source Evidence</span>
+                        {!isCompact && <span className="text-xs font-bold uppercase tracking-[0.2em]">Source Evidence</span>}
                     </div>
                     <Badge variant="outline" className="text-[9px] h-5 bg-background font-bold tracking-widest border-red-200 text-red-700">
-                        {sources.length} VERIFIED
+                        {sources.length} {isCompact ? '' : 'VERIFIED'}
                     </Badge>
                 </div>
-                <p className="text-[10px] text-muted-foreground leading-normal">
-                    Direct citations from the intelligence layer used to synthesize the analysis.
-                </p>
+                {!isCompact && (
+                    <p className="text-[10px] text-muted-foreground leading-normal">
+                        Direct citations from the intelligence layer used to synthesize the analysis.
+                    </p>
+                )}
             </div>
 
             <ScrollArea className="flex-1">
@@ -97,11 +100,13 @@ export function SourceVerification({ sources, isLoading }: SourceVerificationPro
                 </div>
             </ScrollArea>
 
-            <div className="p-4 border-t bg-card/10 text-center">
-                <p className="text-[9px] text-muted-foreground uppercase font-bold tracking-widest">
-                    Evidence Integrity Protocol v1.4
-                </p>
-            </div>
+            {!isCompact && (
+                <div className="p-4 border-t bg-card/10 text-center">
+                    <p className="text-[9px] text-muted-foreground uppercase font-bold tracking-widest">
+                        Evidence Integrity Protocol v1.4
+                    </p>
+                </div>
+            )}
         </div>
     );
 }
