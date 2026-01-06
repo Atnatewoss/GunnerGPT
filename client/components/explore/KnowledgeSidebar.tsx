@@ -8,7 +8,9 @@ import {
     Filter,
     Check,
     User,
-    Heart
+    Heart,
+    ChevronDown,
+    ChevronRight
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Separator } from "@/components/ui/separator";
@@ -21,14 +23,27 @@ import {
     SelectValue
 } from "@/components/ui/select";
 import { useState } from "react";
+import { Button } from "@/components/ui/button";
 
 const categories = [
     { id: 'all', label: 'General Intelligence', icon: Library },
-    { id: 'players', label: 'Player Analytics', icon: Users },
     { id: 'tactics', label: 'Tactical Patterns', icon: Settings2 },
     { id: 'seasons', label: 'Seasonal Archives', icon: Trophy },
     { id: 'arteta', label: 'Arteta Era', icon: User },
     { id: 'fans', label: 'Fan Intelligence', icon: Heart },
+];
+
+const players = [
+    { id: 'david-raya', name: 'David Raya' },
+    { id: 'william-saliba', name: 'William Saliba' },
+    { id: 'gabriel-magalhaes', name: 'Gabriel Magalhães' },
+    { id: 'ben-white', name: 'Ben White' },
+    { id: 'martin-odegaard', name: 'Martin Ødegaard' },
+    { id: 'declan-rice', name: 'Declan Rice' },
+    { id: 'bukayo-saka', name: 'Bukayo Saka' },
+    { id: 'gabriel-martinelli', name: 'Gabriel Martinelli' },
+    { id: 'kai-havertz', name: 'Kai Havertz' },
+    { id: 'leandro-trossard', name: 'Leandro Trossard' },
 ];
 
 interface KnowledgeSidebarProps {
@@ -38,6 +53,7 @@ interface KnowledgeSidebarProps {
 
 export function KnowledgeSidebar({ activeCategory, onCategoryChange }: KnowledgeSidebarProps) {
     const [selectedSeason, setSelectedSeason] = useState("2025-26");
+    const [isPlayersExpanded, setIsPlayersExpanded] = useState(false);
 
     return (
         <div className="flex flex-col h-full bg-card/10 border-r">
@@ -99,6 +115,46 @@ export function KnowledgeSidebar({ activeCategory, onCategoryChange }: Knowledge
                             </button>
                         );
                     })}
+
+                    {/* Players Dropdown */}
+                    <div className="px-3 py-2">
+                        <Button
+                            variant="ghost"
+                            className="w-full justify-between h-auto p-0 hover:bg-transparent"
+                            onClick={() => setIsPlayersExpanded(!isPlayersExpanded)}
+                        >
+                            <div className="flex items-center space-x-2">
+                                <Users className="w-4 h-4 text-red-600" />
+                                <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                                    Players
+                                </span>
+                            </div>
+                            {isPlayersExpanded ? (
+                                <ChevronDown className="w-3 h-3 text-muted-foreground" />
+                            ) : (
+                                <ChevronRight className="w-3 h-3 text-muted-foreground" />
+                            )}
+                        </Button>
+                    </div>
+
+                    {isPlayersExpanded && (
+                        <div className="ml-6 space-y-1">
+                            {players.map((player) => (
+                                <button
+                                    key={player.id}
+                                    onClick={() => onCategoryChange(player.id)}
+                                    className={cn(
+                                        "w-full flex items-center px-3 py-2 rounded-md text-xs font-medium transition-all group text-left",
+                                        activeCategory === player.id
+                                            ? "bg-red-600 text-white shadow-md shadow-red-200"
+                                            : "text-muted-foreground hover:bg-accent hover:text-foreground"
+                                    )}
+                                >
+                                    <span className="text-[11px]">{player.name}</span>
+                                </button>
+                            ))}
+                        </div>
+                    )}
                 </div>
 
                 <Separator className="my-2 mx-4" />

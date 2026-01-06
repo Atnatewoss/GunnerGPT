@@ -50,10 +50,10 @@ export function PlayerCard({ name, role, image, stats }: PlayerCardProps) {
 
     return (
         <Card
-            className="group relative overflow-hidden border-2 transition-all duration-300 hover:border-red-600/50 hover:shadow-xl cursor-pointer bg-card"
+            className="group relative overflow-hidden border transition-all duration-300 hover:border-red-600/50 hover:shadow-lg cursor-pointer bg-card"
             onClick={handleCardClick}
         >
-            <div className="aspect-[4/5] relative overflow-hidden bg-muted">
+            <div className="aspect-[3/4] relative overflow-hidden bg-muted">
                 {image ? (
                     <Image
                         src={image}
@@ -63,42 +63,44 @@ export function PlayerCard({ name, role, image, stats }: PlayerCardProps) {
                     />
                 ) : (
                     <div className="absolute inset-0 flex items-center justify-center text-muted-foreground/20">
-                        <TrendingUp className="w-24 h-24" />
+                        <TrendingUp className="w-16 h-16" />
                     </div>
                 )}
 
                 {/* Hover Overlay */}
-                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col items-center justify-center p-6 space-y-3">
+                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col items-center justify-center p-3 space-y-2">
                     <Button
                         variant="secondary"
-                        className="w-full h-10 rounded-full font-bold text-xs uppercase tracking-wider"
+                        className="w-full h-8 rounded-full text-xs font-bold"
                         onClick={handleExplore}
+                        size="sm"
                     >
-                        <Search className="w-3.5 h-3.5 mr-2" />
-                        Explore Role
+                        <Search className="w-3 h-3 mr-1" />
+                        Explore
                     </Button>
                     <Button
                         variant="outline"
-                        className="w-full h-10 rounded-full font-bold text-xs uppercase tracking-wider bg-white/10 border-white/20 text-white hover:bg-white/20"
+                        className="w-full h-8 rounded-full text-xs font-bold bg-white/10 border-white/20 text-white hover:bg-white/20"
                         onClick={handleAsk}
+                        size="sm"
                     >
-                        <MessageSquare className="w-3.5 h-3.5 mr-2" />
-                        Ask About Player
+                        <MessageSquare className="w-3 h-3 mr-1" />
+                        Ask
                     </Button>
                 </div>
 
-                <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <div className="bg-red-600 text-white p-1.5 rounded-full">
-                        <ArrowUpRight className="w-4 h-4" />
+                <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="bg-red-600 text-white p-1 rounded-full">
+                        <ArrowUpRight className="w-3 h-3" />
                     </div>
                 </div>
             </div>
 
-            <CardHeader className="p-4 pb-2">
+            <CardHeader className="p-3 pb-2">
                 <div className="flex items-start justify-between">
                     <div>
-                        <CardTitle className="text-xl font-bold tracking-tight">{name}</CardTitle>
-                        <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mt-1">
+                        <CardTitle className="text-sm font-bold tracking-tight leading-tight">{name}</CardTitle>
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mt-0.5">
                             {role}
                         </p>
                     </div>
@@ -106,14 +108,14 @@ export function PlayerCard({ name, role, image, stats }: PlayerCardProps) {
             </CardHeader>
 
             {stats && (
-                <CardContent className="p-4 pt-0">
-                    <div className="grid grid-cols-2 gap-4 mt-4 py-3 border-t">
+                <CardContent className="p-3 pt-0">
+                    <div className="grid grid-cols-2 gap-2 mt-2 py-2 border-t">
                         {stats.map((stat, i) => (
                             <div key={i} className="flex flex-col">
-                                <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                                <span className="text-[8px] font-bold uppercase tracking-wider text-muted-foreground">
                                     {stat.label}
                                 </span>
-                                <span className="text-sm font-bold text-foreground">
+                                <span className="text-xs font-bold text-foreground">
                                     {stat.value}
                                 </span>
                             </div>
