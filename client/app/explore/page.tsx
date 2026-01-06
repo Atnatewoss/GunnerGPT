@@ -54,57 +54,59 @@ function KnowledgeExplorerContent() {
   };
 
   return (
-    <div className="flex bg-background border rounded-2xl overflow-hidden shadow-2xl h-[calc(100vh-140px)] animate-in fade-in duration-1000">
-      {/* Left Panel: Filters & Categories */}
-      <aside className="w-64 flex-shrink-0">
-        <KnowledgeSidebar
-          activeCategory={activeCategory}
-          onCategoryChange={setActiveCategory}
-        />
-      </aside>
-
-      {/* Main Panel: Structured Analysis */}
-      <main className="flex-1 flex flex-col min-w-0 bg-background relative overflow-hidden">
-        {/* Search Header for Main Panel */}
-        <div className="p-4 border-b bg-card/20 z-10">
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              handleSearch(query);
-            }}
-            className="relative group"
-          >
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-red-600 transition-colors" />
-            <Input
-              placeholder="Query the Arsenal Intelligence Layer..."
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              className="pl-10 h-10 bg-background/50 border-2 border-transparent focus-visible:border-red-600/20 focus-visible:ring-0 transition-all"
-            />
-            {isLoading && (
-              <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                <Loader2 className="w-4 h-4 text-red-600 animate-spin" />
-              </div>
-            )}
-          </form>
-        </div>
-
-        <div className="flex-1 overflow-hidden">
-          <KnowledgeAnalysis
-            query={query}
-            isLoading={isLoading}
-            results={results}
+    <div className="container mx-auto px-4 py-6">
+      <div className="flex bg-background border border-[#E30613]/10 rounded-2xl overflow-hidden shadow-2xl h-[calc(100vh-180px)] animate-in fade-in duration-1000">
+        {/* Left Panel: Filters & Categories */}
+        <aside className="w-64 flex-shrink-0">
+          <KnowledgeSidebar
+            activeCategory={activeCategory}
+            onCategoryChange={setActiveCategory}
           />
-        </div>
-      </main>
+        </aside>
 
-      {/* Right Panel: Evidence & Sources */}
-      <aside className="w-80 flex-shrink-0 hidden lg:block">
-        <SourceVerification
-          sources={results?.results || []}
-          isLoading={isLoading}
-        />
-      </aside>
+        {/* Main Panel: Structured Analysis */}
+        <main className="flex-1 flex flex-col min-w-0 bg-background relative overflow-hidden">
+          {/* Search Header for Main Panel */}
+          <div className="p-4 border-b bg-card/20 z-10">
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleSearch(query);
+              }}
+              className="relative group"
+            >
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-red-600 transition-colors" />
+              <Input
+                placeholder="Query the Arsenal Intelligence Layer..."
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                className="pl-10 h-10 bg-background/50 border-2 border-transparent focus-visible:border-red-600/20 focus-visible:ring-0 transition-all"
+              />
+              {isLoading && (
+                <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                  <Loader2 className="w-4 h-4 text-red-600 animate-spin" />
+                </div>
+              )}
+            </form>
+          </div>
+
+          <div className="flex-1 overflow-hidden">
+            <KnowledgeAnalysis
+              query={query}
+              isLoading={isLoading}
+              results={results}
+            />
+          </div>
+        </main>
+
+        {/* Right Panel: Evidence & Sources */}
+        <aside className="w-80 flex-shrink-0 hidden lg:block">
+          <SourceVerification
+            sources={results?.results || []}
+            isLoading={isLoading}
+          />
+        </aside>
+      </div>
     </div>
   );
 }

@@ -43,33 +43,20 @@ export function KnowledgeSidebar({ activeCategory, onCategoryChange }: Knowledge
                 <div className="space-y-4">
                     <div className="space-y-1.5">
                         <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground ml-1">
-                            Data scope
-                        </label>
-                        <Select defaultValue="full">
-                            <SelectTrigger className="h-9 text-xs bg-background">
-                                <SelectValue placeholder="Select scope" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="full">Full Intelligence Layer</SelectItem>
-                                <SelectItem value="verified">Verified Documents Only</SelectItem>
-                                <SelectItem value="historical">Historical Archives</SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
-
-                    <div className="space-y-1.5">
-                        <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground ml-1">
                             Timeframe
                         </label>
-                        <Select defaultValue="2024-25">
+                        <Select defaultValue="2025-26">
                             <SelectTrigger className="h-9 text-xs bg-background">
                                 <SelectValue placeholder="Select season" />
                             </SelectTrigger>
                             <SelectContent>
+                                <SelectItem value="2025-26">Season 2025/26</SelectItem>
                                 <SelectItem value="2024-25">Season 2024/25</SelectItem>
                                 <SelectItem value="2023-24">Season 2023/24</SelectItem>
-                                <SelectItem value="arteta">Arteta Era (2019-Present)</SelectItem>
-                                <SelectItem value="invincibles">Invincibles Era</SelectItem>
+                                <SelectItem value="2022-23">Season 2022/23</SelectItem>
+                                <SelectItem value="2021-22">Season 2021/22</SelectItem>
+                                <SelectItem value="2020-21">Season 2020/21</SelectItem>
+                                <SelectItem value="2019-20">Season 2019/20</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
