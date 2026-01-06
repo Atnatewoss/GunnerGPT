@@ -18,6 +18,7 @@ import {
     SelectTrigger,
     SelectValue
 } from "@/components/ui/select";
+import { useState } from "react";
 
 const categories = [
     { id: 'all', label: 'General Intelligence', icon: Library },
@@ -32,6 +33,8 @@ interface KnowledgeSidebarProps {
 }
 
 export function KnowledgeSidebar({ activeCategory, onCategoryChange }: KnowledgeSidebarProps) {
+    const [selectedSeason, setSelectedSeason] = useState("2025-26");
+
     return (
         <div className="flex flex-col h-full bg-card/10 border-r">
             <div className="p-4 border-b bg-card/30">
@@ -45,9 +48,9 @@ export function KnowledgeSidebar({ activeCategory, onCategoryChange }: Knowledge
                         <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground ml-1">
                             Timeframe
                         </label>
-                        <Select defaultValue="2025-26">
+                        <Select value={selectedSeason} onValueChange={setSelectedSeason}>
                             <SelectTrigger className="h-9 text-xs bg-background">
-                                <SelectValue placeholder="Select season" />
+                                <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="2025-26">Season 2025/26</SelectItem>
