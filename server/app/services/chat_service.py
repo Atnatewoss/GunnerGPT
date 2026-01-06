@@ -7,6 +7,7 @@ from typing import List
 from ..rag.retriever import retrieve_documents
 from ..rag.prompts import format_chat_prompt, SYSTEM_PROMPT
 from ..models.chat import DocumentResult, ChatRequest, ChatResponse
+from .llm_service import llm_service
 
 logger = logging.getLogger(__name__)
 
@@ -34,8 +35,8 @@ class ChatService:
             # Format context from retrieved documents
             context = self._format_context(documents, request.context_length)
             
-            # Generate response (placeholder for now - could integrate with LLM)
-            response = self._generate_response(request.message, context)
+            # Generate response using LLM
+            response = await self._generate_llm_response(request.message, context)
             
             # Convert to DocumentResult models
             source_results = [
@@ -55,7 +56,12 @@ class ChatService:
             
         except Exception as e:
             logger.error(f"Chat processing failed: {e}")
-            raise
+            # Return fallback response
+            return ChatResponse(
+                response=self._get_fallback_response(request.message),
+                sources=[],
+                query=request.message
+            )
     
     def _format_context(self, documents: List[dict], max_length: int) -> str:
         """Format retrieved documents into context string"""
@@ -78,26 +84,35 @@ class ChatService:
         
         return "\n".join(context_parts)
     
-    def _generate_response(self, question: str, context: str) -> str:
-        """
-        Generate response based on context and question
-        This is a placeholder implementation that could be enhanced with an LLM
-        """
-        if not context.strip():
-            return "I don't have specific information about that in my knowledge base. Could you try asking about Arsenal's history, players, or recent matches?"
+    async def _generate_llm_response(self, question: str, context: str) -> str:
+        """Generate response using LLM service"""
+        if not await llm_service.is_available():
+            return self._get_fallback_response(question)
         
-        # Simple rule-based response for demonstration
+        # Format prompt for LLM
+        prompt = format_chat_prompt(context, question)
+        
+        # Generate response
+        response = await llm_service.generate_response(prompt)
+        
+        if response:
+            return response
+        else:
+            logger.warning("LLM generation failed, using fallback")
+            return self._get_fallback_response(question)
+    
+    def _get_fallback_response(self, question: str) -> str:
+        """Get fallback response when LLM is unavailable"""
         question_lower = question.lower()
         
         if "manager" in question_lower or "coach" in question_lower:
-            return "Based on the information available, Mikel Arteta is the current manager of Arsenal FC. He has been in charge since December 2019 and has led the team to significant success including the FA Cup and Community Shield victories."
+            return "Based on the information available, Mikel Arteta is the current manager of Arsenal FC. He has been in charge since December 2019 and has led the team to significant success including FA Cup and Community Shield victories."
         
         elif "history" in question_lower or "founded" in question_lower:
             return "Arsenal Football Club was founded in 1886 and is one of England's most successful clubs. The team has won numerous league titles, FA Cups, and European trophies throughout its rich history."
         
         elif "stadium" in question_lower or "emirates" in question_lower:
-            return "Arsenal currently plays at the Emirates Stadium, which opened in 2006. The stadium has a capacity of over 60,000 spectators and is one of the premier football venues in England."
+            return "Arsenal currently plays at Emirates Stadium, which opened in 2006. The stadium has a capacity of over 60,000 spectators and is one of the premier football venues in England."
         
         else:
-            # Generic response based on available context
-            return f"Based on the Arsenal knowledge base I have access to, here's what I can tell you about your question: {question}. The information available suggests this relates to Arsenal FC, one of England's most historic football clubs."
+            return f"I understand you're asking about: '{question}'. While I have access to Arsenal's knowledge base, I'm currently experiencing technical difficulties with my advanced AI capabilities. You can try asking about Arsenal's history, players, manager, or stadium for basic information."
