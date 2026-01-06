@@ -55,7 +55,7 @@ function KnowledgeExplorerContent() {
 
   return (
     <div className="container mx-auto px-4 py-6">
-      <div className="flex bg-background border border-[#E30613]/10 rounded-2xl overflow-hidden shadow-2xl h-[calc(100vh-140px)] animate-in fade-in duration-1000">
+      <div className="flex bg-background border border-[#E30613]/10 rounded-2xl overflow-hidden shadow-2xl h-[calc(100vh-100px)] animate-in fade-in duration-1000">
         {/* Left Panel: Filters & Categories */}
         <aside className="w-64 flex-shrink-0">
           <KnowledgeSidebar

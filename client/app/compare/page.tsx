@@ -5,7 +5,7 @@ import { ArrowRightLeft } from 'lucide-react';
 export default function ComparePage() {
     return (
         <div className="container mx-auto px-4 py-6">
-            <div className="flex flex-col h-[calc(100vh-140px)] space-y-4 animate-in fade-in duration-700">
+            <div className="flex flex-col h-[calc(100vh-100px)] space-y-4 animate-in fade-in duration-700">
                 <div className="flex items-center justify-between px-1">
                     <div className="flex items-center space-x-3">
                         <div className="bg-red-600 text-white p-2 rounded-lg">
