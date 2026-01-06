@@ -16,22 +16,20 @@ const navItems = [
     { name: 'Explore', href: '/explore', icon: Search },
     { name: 'Players', href: '/players', icon: Users },
     { name: 'Compare', href: '/compare', icon: ArrowLeftRight },
-    { name: 'Timeline', href: '/timeline', icon: History },
-    { name: 'Sources', href: '/sources', icon: Library },
 ];
 
 export function Navbar() {
     const pathname = usePathname();
 
     return (
-        <nav className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <nav className="sticky top-0 z-50 w-full border-b border-[#E30613]/20 bg-[#E30613] text-white">
             <div className="container mx-auto px-4 flex h-16 items-center justify-between">
                 <div className="flex items-center space-x-6">
                     <Link href="/" className="flex items-center space-x-2">
-                        <div className="w-8 h-8 rounded bg-red-600 flex items-center justify-center">
-                            <span className="text-white font-bold text-lg">G</span>
+                        <div className="w-8 h-8 rounded bg-white flex items-center justify-center">
+                            <span className="text-[#E30613] font-black text-lg">G</span>
                         </div>
-                        <span className="font-bold text-xl hidden md:inline-block">GunnerGPT</span>
+                        <span className="font-bold text-xl hidden md:inline-block tracking-tight">GunnerGPT</span>
                     </Link>
 
                     <div className="flex items-center space-x-1">
@@ -43,14 +41,14 @@ export function Navbar() {
                                     key={item.href}
                                     href={item.href}
                                     className={cn(
-                                        "flex items-center space-x-2 px-3 py-2 rounded-md transition-colors",
+                                        "flex items-center space-x-2 px-3 py-2 rounded-md transition-all font-bold text-sm",
                                         isActive
-                                            ? "bg-accent text-accent-foreground"
-                                            : "text-muted-foreground hover:bg-accent/50 hover:text-accent-foreground"
+                                            ? "bg-white/20 text-white"
+                                            : "text-white/70 hover:bg-white/10 hover:text-white"
                                     )}
                                 >
                                     <Icon className="w-4 h-4" />
-                                    <span className="text-sm font-medium">{item.name}</span>
+                                    <span>{item.name}</span>
                                 </Link>
                             );
                         })}
@@ -58,9 +56,8 @@ export function Navbar() {
                 </div>
 
                 <div className="flex items-center space-x-4">
-                    {/* Theme Toggle placeholder or other actions */}
-                    <div className="text-xs text-muted-foreground hidden sm:block">
-                        Pro Dashboard
+                    <div className="text-[10px] font-black uppercase tracking-[0.2em] px-3 py-1 rounded-full border border-white/20 bg-white/5 hidden sm:block">
+                        Technical Build v4.2
                     </div>
                 </div>
             </div>
