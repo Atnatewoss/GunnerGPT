@@ -17,7 +17,7 @@ for txt_file in KB_PATH.rglob("*.txt"):
         documents.append({
             "text": text,
             "source": txt_file.name,
-            "category": txt_file.parent_name
+            "category": txt_file.parent.name
         })
 
 # What we have now is: documents, a list of dicts with everything in memory.
@@ -55,6 +55,7 @@ for doc in documents:
 
     for i, chunk in enumerate(chunks):
         chunked_documents.append({
+            "id": f"{doc['source']}_{i}",
             "text": chunk,
             "source": doc["source"],
             "category": doc["category"],
