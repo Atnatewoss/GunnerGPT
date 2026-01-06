@@ -109,7 +109,7 @@ export function KnowledgeAnalysis({ query, isLoading, results, isCompact }: Know
                 )}
             </div>
 
-            <div className={cn("flex-1 overflow-y-auto p-6 space-y-8", isCompact && "p-4 space-y-4")}>
+            <div className={cn("flex-1 overflow-hidden p-6 space-y-8 pb-0", isCompact && "p-4 space-y-4 pb-0")}>
                 <section className={cn("space-y-4", isCompact && "space-y-2")}>
                     <div className="flex items-center space-x-2">
                         <div className="w-8 h-8 rounded-lg bg-red-50 flex items-center justify-center">

@@ -95,7 +95,7 @@ const players = [
 
 export default function PlayersPage() {
     return (
-        <div className="container mx-auto px-4 py-6 h-[calc(100vh-100px)] flex flex-col animate-in fade-in duration-500">
+        <div className="container mx-auto px-4 py-6 h-[calc(100vh-60px)] flex flex-col animate-in fade-in duration-500">
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
                 <div>
                     <h1 className="text-4xl font-extrabold tracking-tight">First Team Squad</h1>

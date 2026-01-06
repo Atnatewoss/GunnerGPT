@@ -10,7 +10,8 @@ import {
     User,
     Heart,
     ChevronDown,
-    ChevronRight
+    ChevronRight,
+    X
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Separator } from "@/components/ui/separator";
@@ -28,7 +29,6 @@ import { Button } from "@/components/ui/button";
 const categories = [
     { id: 'all', label: 'General Intelligence', icon: Library },
     { id: 'tactics', label: 'Tactical Patterns', icon: Settings2 },
-    { id: 'seasons', label: 'Seasonal Archives', icon: Trophy },
     { id: 'arteta', label: 'Arteta Era', icon: User },
     { id: 'fans', label: 'Fan Intelligence', icon: Heart },
 ];
@@ -46,6 +46,16 @@ const players = [
     { id: 'leandro-trossard', name: 'Leandro Trossard' },
 ];
 
+const seasons = [
+    { id: '2025-26', name: 'Season 2025/26' },
+    { id: '2024-25', name: 'Season 2024/25' },
+    { id: '2023-24', name: 'Season 2023/24' },
+    { id: '2022-23', name: 'Season 2022/23' },
+    { id: '2021-22', name: 'Season 2021/22' },
+    { id: '2020-21', name: 'Season 2020/21' },
+    { id: '2019-20', name: 'Season 2019/20' },
+];
+
 interface KnowledgeSidebarProps {
     activeCategory: string;
     onCategoryChange: (category: string) => void;
@@ -54,6 +64,9 @@ interface KnowledgeSidebarProps {
 export function KnowledgeSidebar({ activeCategory, onCategoryChange }: KnowledgeSidebarProps) {
     const [selectedSeason, setSelectedSeason] = useState("2025-26");
     const [isPlayersExpanded, setIsPlayersExpanded] = useState(false);
+    const [isSeasonsExpanded, setIsSeasonsExpanded] = useState(false);
+    const [selectedPlayer, setSelectedPlayer] = useState(players[0]);
+    const [selectedSeasonItem, setSelectedSeasonItem] = useState(seasons[0]);
 
     return (
         <div className="flex flex-col h-full bg-card/10 border-r">
@@ -61,28 +74,6 @@ export function KnowledgeSidebar({ activeCategory, onCategoryChange }: Knowledge
                 <div className="flex items-center space-x-2 text-red-600 mb-4">
                     <Filter className="w-4 h-4" />
                     <span className="text-xs font-bold uppercase tracking-[0.2em]">Research Filters</span>
-                </div>
-
-                <div className="space-y-4">
-                    <div className="space-y-1.5">
-                        <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground ml-1">
-                            Timeframe
-                        </label>
-                        <Select value={selectedSeason} onValueChange={setSelectedSeason}>
-                            <SelectTrigger className="h-9 text-xs bg-background">
-                                <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="2025-26">Season 2025/26</SelectItem>
-                                <SelectItem value="2024-25">Season 2024/25</SelectItem>
-                                <SelectItem value="2023-24">Season 2023/24</SelectItem>
-                                <SelectItem value="2022-23">Season 2022/23</SelectItem>
-                                <SelectItem value="2021-22">Season 2021/22</SelectItem>
-                                <SelectItem value="2020-21">Season 2020/21</SelectItem>
-                                <SelectItem value="2019-20">Season 2019/20</SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
                 </div>
             </div>
 
@@ -116,41 +107,91 @@ export function KnowledgeSidebar({ activeCategory, onCategoryChange }: Knowledge
                         );
                     })}
 
-                    {/* Players Dropdown */}
-                    <div className="px-3 py-2">
-                        <Button
-                            variant="ghost"
-                            className="w-full justify-between h-auto p-0 hover:bg-transparent"
-                            onClick={() => setIsPlayersExpanded(!isPlayersExpanded)}
-                        >
-                            <div className="flex items-center space-x-2">
-                                <Users className="w-4 h-4 text-red-600" />
-                                <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                                    Players
-                                </span>
-                            </div>
-                            {isPlayersExpanded ? (
-                                <ChevronDown className="w-3 h-3 text-muted-foreground" />
-                            ) : (
-                                <ChevronRight className="w-3 h-3 text-muted-foreground" />
-                            )}
-                        </Button>
-                    </div>
+                    {/* Players Modal */}
+                    <button
+                        onClick={() => setIsPlayersExpanded(!isPlayersExpanded)}
+                        className={cn(
+                            "w-full flex items-center justify-between px-3 py-2.5 rounded-md text-xs font-medium transition-all group",
+                            isPlayersExpanded
+                                ? "bg-red-600 text-white shadow-md shadow-red-200"
+                                : "text-muted-foreground hover:bg-accent hover:text-foreground"
+                        )}
+                    >
+                        <div className="flex items-center space-x-3">
+                            <Users className={cn("w-4 h-4", isPlayersExpanded ? "text-white" : "text-red-600")} />
+                            <span>Players</span>
+                        </div>
+                        {isPlayersExpanded ? (
+                            <ChevronDown className="w-3.5 h-3.5" />
+                        ) : (
+                            <ChevronRight className="w-3.5 h-3.5" />
+                        )}
+                    </button>
 
                     {isPlayersExpanded && (
-                        <div className="ml-6 space-y-1">
+                        <div className="ml-6 space-y-1 max-h-40 overflow-y-auto">
                             {players.map((player) => (
                                 <button
                                     key={player.id}
-                                    onClick={() => onCategoryChange(player.id)}
+                                    onClick={() => {
+                                        onCategoryChange(player.id);
+                                        setSelectedPlayer(player);
+                                        setIsPlayersExpanded(false);
+                                    }}
                                     className={cn(
-                                        "w-full flex items-center px-3 py-2 rounded-md text-xs font-medium transition-all group text-left",
+                                        "w-full flex items-center justify-between px-3 py-2.5 rounded-md text-xs font-medium transition-all group text-left",
                                         activeCategory === player.id
                                             ? "bg-red-600 text-white shadow-md shadow-red-200"
                                             : "text-muted-foreground hover:bg-accent hover:text-foreground"
                                     )}
                                 >
                                     <span className="text-[11px]">{player.name}</span>
+                                    {activeCategory === player.id && <Check className="w-3 h-3" />}
+                                </button>
+                            ))}
+                        </div>
+                    )}
+
+                    {/* Seasons Modal */}
+                    <button
+                        onClick={() => setIsSeasonsExpanded(!isSeasonsExpanded)}
+                        className={cn(
+                            "w-full flex items-center justify-between px-3 py-2.5 rounded-md text-xs font-medium transition-all group",
+                            isSeasonsExpanded
+                                ? "bg-red-600 text-white shadow-md shadow-red-200"
+                                : "text-muted-foreground hover:bg-accent hover:text-foreground"
+                        )}
+                    >
+                        <div className="flex items-center space-x-3">
+                            <Trophy className={cn("w-4 h-4", isSeasonsExpanded ? "text-white" : "text-red-600")} />
+                            <span>Seasonal Archives</span>
+                        </div>
+                        {isSeasonsExpanded ? (
+                            <ChevronDown className="w-3.5 h-3.5" />
+                        ) : (
+                            <ChevronRight className="w-3.5 h-3.5" />
+                        )}
+                    </button>
+
+                    {isSeasonsExpanded && (
+                        <div className="ml-6 space-y-1 max-h-40 overflow-y-auto">
+                            {seasons.map((season) => (
+                                <button
+                                    key={season.id}
+                                    onClick={() => {
+                                        onCategoryChange(season.id);
+                                        setSelectedSeasonItem(season);
+                                        setIsSeasonsExpanded(false);
+                                    }}
+                                    className={cn(
+                                        "w-full flex items-center justify-between px-3 py-2 rounded-md text-xs font-medium transition-all group text-left",
+                                        activeCategory === season.id
+                                            ? "bg-red-600 text-white shadow-md shadow-red-200"
+                                            : "text-muted-foreground hover:bg-accent hover:text-foreground"
+                                    )}
+                                >
+                                    <span className="text-[11px]">{season.name}</span>
+                                    {activeCategory === season.id && <Check className="w-3 h-3" />}
                                 </button>
                             ))}
                         </div>

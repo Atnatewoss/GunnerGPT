@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 import { Navbar } from "@/components/layout/Navbar";
-import { ZoomWrapper } from "@/components/layout/ZoomWrapper";
+import { ZoomWrapper } from "../components/layout/ZoomWrapper";
 
 export default function RootLayout({
   children,

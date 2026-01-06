@@ -38,7 +38,7 @@ export function SourceVerification({ sources, isLoading, isCompact }: SourceVeri
                 )}
             </div>
 
-            <ScrollArea className="flex-1">
+            <div className="flex-1 overflow-hidden">
                 <div className="p-4 space-y-4">
                     {isLoading ? (
                         <div className="space-y-4">
@@ -98,7 +98,7 @@ export function SourceVerification({ sources, isLoading, isCompact }: SourceVeri
                         </div>
                     )}
                 </div>
-            </ScrollArea>
+            </div>
 
             {!isCompact && (
                 <div className="p-4 border-t bg-card/10 text-center">
