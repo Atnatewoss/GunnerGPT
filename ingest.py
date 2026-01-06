@@ -86,8 +86,20 @@ embeddings = embedding_model.encode(
 )
 
 # ---------------------------------------------------------------------
-# Step 4: Connect to Chroma Cloud
+# Step 4: Connect to Chroma Cloud (v2 API)
 # ---------------------------------------------------------------------
+
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+CHROMA_API_KEY = os.getenv("CHROMA_API_KEY")
+CHROMA_TENANT = os.getenv("CHROMA_TENANT")
+CHROMA_DATABASE = os.getenv("CHROMA_DATABASE")
+
+if not all([CHROMA_API_KEY, CHROMA_TENANT, CHROMA_DATABASE]):
+    raise ValueError("Missing Chroma Cloud environment variables")
 
 client = chromadb.HttpClient(
     host="api.trychroma.com",
@@ -95,7 +107,9 @@ client = chromadb.HttpClient(
     ssl=True,
     headers={
         "Authorization": f"Bearer {CHROMA_API_KEY}"
-    }
+    },
+    tenant=CHROMA_TENANT,
+    database=CHROMA_DATABASE
 )
 
 collection = client.get_or_create_collection(
