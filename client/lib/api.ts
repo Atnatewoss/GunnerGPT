@@ -45,7 +45,7 @@ export const api = {
   health: () => apiRequest<HealthResponse>('/health'),
 
   // Knowledge query
-  query: (request: { message: string; n_results?: number }) =>
+  query: (request: { query: string; n_results?: number; category?: string }) =>
     apiRequest<QueryResponse>('/query', {
       method: 'POST',
       body: JSON.stringify(request),

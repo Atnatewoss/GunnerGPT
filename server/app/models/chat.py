@@ -10,6 +10,7 @@ class QueryRequest(BaseModel):
     """Request model for querying the knowledge base"""
     query: str = Field(..., description="The search query")
     n_results: int = Field(default=5, ge=1, le=20, description="Number of results to return")
+    category: Optional[str] = Field(default="all", description="Category scope for retrieval")
 
 
 class DocumentResult(BaseModel):

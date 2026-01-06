@@ -15,13 +15,21 @@ function KnowledgeExplorerContent() {
   const searchParams = useSearchParams();
   const initialQuery = searchParams.get('query') || '';
 
-  const [query, setQuery] = useState(initialQuery);
-  const [activeCategory, setActiveCategory] = useState('all');
-  const [results, setResults] = useState<QueryResponse | null>(null);
+  const [query, setQuery] = useState('');
+  const [activeCategory, setActiveCategory] = useState('2025-26');
+  const [results, setResults] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [stats, setStats] = useState<HealthResponse | null>(null);
   const [submittedQuery, setSubmittedQuery] = useState('');
   const [submittedCategory, setSubmittedCategory] = useState('');
+  const [processStatus, setProcessStatus] = useState({
+    currentStep: 0,
+    queryReceived: false,
+    embeddingGenerated: false,
+    documentsRetrieved: false,
+    contextFormed: false,
+    responseGenerated: false,
+    evaluationComplete: false
+  });
 
   useEffect(() => {
     loadStats();
@@ -32,8 +40,7 @@ function KnowledgeExplorerContent() {
 
   const loadStats = async () => {
     try {
-      const healthResponse = await api.health();
-      setStats(healthResponse);
+      // We could fetch system status here if needed
     } catch (error) {
       console.error('Failed to load stats:', error);
     }
@@ -45,7 +52,7 @@ function KnowledgeExplorerContent() {
     setIsLoading(true);
     try {
       const response = await api.query({
-        message: searchQuery,
+        query: searchQuery,  // Changed from 'message' to 'query'
         n_results: 10
       });
       setResults(response);
@@ -64,14 +71,51 @@ function KnowledgeExplorerContent() {
     setSubmittedCategory(activeCategory);
     setIsLoading(true);
     
+    // Reset and start process
+    setProcessStatus({
+      currentStep: 0,
+      queryReceived: true,
+      embeddingGenerated: false,
+      documentsRetrieved: false,
+      contextFormed: false,
+      responseGenerated: false,
+      evaluationComplete: false
+    });
+    
     try {
+      // Step 1: Query Processing
+      setProcessStatus(prev => ({ ...prev, currentStep: 1, embeddingGenerated: true }));
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Step 2: Top-K Retrieval
+      setProcessStatus(prev => ({ ...prev, currentStep: 2, documentsRetrieved: true }));
       const response = await api.query({
-        message: query,
+        query: query,
         n_results: 5,
+        category: activeCategory,
       });
+      await new Promise(resolve => setTimeout(resolve, 300));
+      
+      // Step 3: Context Formation
+      setProcessStatus(prev => ({ ...prev, currentStep: 3, contextFormed: true }));
+      await new Promise(resolve => setTimeout(resolve, 300));
+      
+      // Step 4: Response Generation
+      setProcessStatus(prev => ({ ...prev, currentStep: 4, responseGenerated: true }));
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
       setResults(response);
+      
+      // Step 5: Evaluation - Complete
+      setProcessStatus(prev => ({ ...prev, currentStep: 5, evaluationComplete: true }));
+      await new Promise(resolve => setTimeout(resolve, 300));
+      
+      // Reset to show completion
+      setProcessStatus(prev => ({ ...prev, currentStep: 0 }));
+      
     } catch (error) {
       console.error('Error fetching results:', error);
+      setProcessStatus(prev => ({ ...prev, currentStep: 0 }));
     } finally {
       setIsLoading(false);
       // Clear the input box after submission
@@ -108,7 +152,7 @@ function KnowledgeExplorerContent() {
                   <div className="bg-card/50 border rounded-xl p-4">
                     <h3 className="text-sm font-semibold mb-2">Results ({results.results.length})</h3>
                     <div className="space-y-3">
-                      {results.results.map((result, index) => (
+                      {results.results.map((result: any, index: number) => (
                         <div key={index} className="p-3 bg-background rounded-lg border">
                           <p className="text-sm text-muted-foreground mb-2">{result.text}</p>
                           {result.metadata && (
@@ -179,6 +223,7 @@ function KnowledgeExplorerContent() {
               sources_count: results?.results.length || 0,
               category: submittedCategory
             } : undefined}
+            processStatus={processStatus}
           />
         </aside>
       </div>

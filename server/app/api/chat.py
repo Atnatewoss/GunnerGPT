@@ -27,20 +27,20 @@ chat_service = ChatService()
 
 @router.post("/query", response_model=QueryResponse)
 @limiter.limit("10/minute")
-async def query_knowledge_base(request: QueryRequest, http_request: Request):
+async def query_knowledge_base(request: Request, query_request: QueryRequest):
     """Query the knowledge base with semantic search"""
     if not embedding_model or not collection:
         raise HTTPException(status_code=503, detail="Services not initialized")
     
     try:
         # Log the request with category info
-        logger.info(f"Query request from {get_remote_address(http_request)}: '{request.query}' (category: '{getattr(request, 'category', 'all')}')")
+        logger.info(f"Query request from {get_remote_address(request)}: '{query_request.query}' (category: '{query_request.category}')")
         
         # Retrieve documents using category as scope
         documents = await retrieve_documents(
-            query=request.query, 
-            n_results=request.n_results,
-            category=getattr(request, 'category', 'all')
+            query=query_request.query, 
+            n_results=query_request.n_results,
+            category=query_request.category
         )
         
         # Convert to DocumentResult models
@@ -55,7 +55,7 @@ async def query_knowledge_base(request: QueryRequest, http_request: Request):
         
         return QueryResponse(
             results=results,
-            query=request.query,
+            query=query_request.query,
         )
         
     except Exception as e:

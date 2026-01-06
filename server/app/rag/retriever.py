@@ -10,13 +10,14 @@ from .vectorstore import vector_store
 logger = logging.getLogger(__name__)
 
 
-async def retrieve_documents(query: str, n_results: int = 5) -> List[Dict[str, Any]]:
+async def retrieve_documents(query: str, n_results: int = 5, category: str = "all") -> List[Dict[str, Any]]:
     """
     Retrieve relevant documents for a given query
     
     Args:
         query: The search query
         n_results: Number of results to return
+        category: Category scope for retrieval
         
     Returns:
         List of retrieved documents with metadata
@@ -25,8 +26,8 @@ async def retrieve_documents(query: str, n_results: int = 5) -> List[Dict[str, A
         # Generate query embedding
         query_embedding = await embedding_service.generate_query_embedding(query)
         
-        # Query vector store
-        results = await vector_store.query(query_embedding, n_results)
+        # Query vector store with category filter
+        results = await vector_store.query(query_embedding, n_results, category=category)
         
         # Format results
         formatted_results = []

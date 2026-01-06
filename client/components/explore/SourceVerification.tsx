@@ -23,9 +23,18 @@ interface SourceVerificationProps {
     query?: string;
     category?: string;
     evaluationMetrics?: any;
+    processStatus?: {
+        currentStep?: number;
+        queryReceived?: boolean;
+        embeddingGenerated?: boolean;
+        documentsRetrieved?: boolean;
+        contextFormed?: boolean;
+        responseGenerated?: boolean;
+        evaluationComplete?: boolean;
+    };
 }
 
-export function SourceVerification({ sources, isLoading, isCompact, query, category, evaluationMetrics }: SourceVerificationProps) {
+export function SourceVerification({ sources, isLoading, isCompact, query, category, evaluationMetrics, processStatus }: SourceVerificationProps) {
     return (
         <div className="flex flex-col h-full bg-card/5 border-l">
             <div className={cn("p-4 border-b bg-card/30", isCompact && "p-2")}>
@@ -39,6 +48,39 @@ export function SourceVerification({ sources, isLoading, isCompact, query, categ
                     </Badge>
                 </div>
                 
+                {/* Query Process Status */}
+                {!isCompact && processStatus && (
+                    <div className="mb-4 p-2 bg-background/50 rounded-lg border">
+                        <div className="text-xs font-semibold mb-2 text-foreground">Query Process Status</div>
+                        <div className="grid grid-cols-2 gap-1 text-[9px]">
+                            <div className="flex items-center space-x-1">
+                                <div className={`w-1.5 h-1.5 rounded-full ${processStatus.queryReceived ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+                                <span className={processStatus.queryReceived ? 'text-green-700' : 'text-gray-500'}>Query received</span>
+                            </div>
+                            <div className="flex items-center space-x-1">
+                                <div className={`w-1.5 h-1.5 rounded-full ${processStatus.embeddingGenerated ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+                                <span className={processStatus.embeddingGenerated ? 'text-green-700' : 'text-gray-500'}>Embedding generated</span>
+                            </div>
+                            <div className="flex items-center space-x-1">
+                                <div className={`w-1.5 h-1.5 rounded-full ${processStatus.documentsRetrieved ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+                                <span className={processStatus.documentsRetrieved ? 'text-green-700' : 'text-gray-500'}>Documents retrieved</span>
+                            </div>
+                            <div className="flex items-center space-x-1">
+                                <div className={`w-1.5 h-1.5 rounded-full ${processStatus.contextFormed ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+                                <span className={processStatus.contextFormed ? 'text-green-700' : 'text-gray-500'}>Context formed</span>
+                            </div>
+                            <div className="flex items-center space-x-1">
+                                <div className={`w-1.5 h-1.5 rounded-full ${processStatus.responseGenerated ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+                                <span className={processStatus.responseGenerated ? 'text-green-700' : 'text-gray-500'}>Response generated</span>
+                            </div>
+                            <div className="flex items-center space-x-1">
+                                <div className={`w-1.5 h-1.5 rounded-full ${processStatus.evaluationComplete ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+                                <span className={processStatus.evaluationComplete ? 'text-green-700' : 'text-gray-500'}>Evaluation complete</span>
+                            </div>
+                        </div>
+                    </div>
+                )}
+                
                 {/* Process Steps */}
                 {!isCompact && (
                     <p className="text-[10px] text-muted-foreground leading-normal mb-4">
@@ -48,53 +90,83 @@ export function SourceVerification({ sources, isLoading, isCompact, query, categ
                 
                 {/* RAG Process Display */}
                 <div className="space-y-3">
-                    <div className="flex items-center space-x-3 mb-3">
-                        <div className="w-6 h-6 bg-gray-100 rounded-full flex items-center justify-center">
-                            <Search className="w-3 h-3 text-gray-600" />
+                    <div className={`flex items-center space-x-3 mb-3 ${processStatus?.currentStep === 1 ? 'opacity-100' : 'opacity-60'}`}>
+                        <div className={`w-6 h-6 rounded-full flex items-center justify-center ${
+                            processStatus?.currentStep === 1 ? 'bg-blue-100' : 'bg-gray-100'
+                        }`}>
+                            <Search className={`w-3 h-3 ${
+                                processStatus?.currentStep === 1 ? 'text-blue-600' : 'text-gray-400'
+                            }`} />
                         </div>
                         <div>
-                            <h4 className="text-sm font-medium text-foreground">1. Query Processing</h4>
+                            <h4 className={`text-sm font-medium text-foreground ${
+                                processStatus?.currentStep === 1 ? 'text-blue-600' : ''
+                            }`}>1. Query Processing</h4>
                             <p className="text-xs text-muted-foreground">User query parsed and embedded for semantic search</p>
                         </div>
                     </div>
                     
-                    <div className="flex items-center space-x-3 mb-3">
-                        <div className="w-6 h-6 bg-gray-100 rounded-full flex items-center justify-center">
-                            <Database className="w-3 h-3 text-gray-600" />
+                    <div className={`flex items-center space-x-3 mb-3 ${processStatus?.currentStep === 2 ? 'opacity-100' : 'opacity-60'}`}>
+                        <div className={`w-6 h-6 rounded-full flex items-center justify-center ${
+                            processStatus?.currentStep === 2 ? 'bg-indigo-100' : 'bg-gray-100'
+                        }`}>
+                            <Database className={`w-3 h-3 ${
+                                processStatus?.currentStep === 2 ? 'text-indigo-600' : 'text-gray-400'
+                            }`} />
                         </div>
                         <div>
-                            <h4 className="text-sm font-medium text-foreground">2. Top-K Retrieval</h4>
+                            <h4 className={`text-sm font-medium text-foreground ${
+                                processStatus?.currentStep === 2 ? 'text-indigo-600' : ''
+                            }`}>2. Top-K Retrieval</h4>
                             <p className="text-xs text-muted-foreground">Vector similarity search retrieves top-5 most relevant documents</p>
                         </div>
                     </div>
                     
-                    <div className="flex items-center space-x-3 mb-3">
-                        <div className="w-6 h-6 bg-gray-100 rounded-full flex items-center justify-center">
-                            <Layers className="w-3 h-3 text-gray-600" />
+                    <div className={`flex items-center space-x-3 mb-3 ${processStatus?.currentStep === 3 ? 'opacity-100' : 'opacity-60'}`}>
+                        <div className={`w-6 h-6 rounded-full flex items-center justify-center ${
+                            processStatus?.currentStep === 3 ? 'bg-green-100' : 'bg-gray-100'
+                        }`}>
+                            <Layers className={`w-3 h-3 ${
+                                processStatus?.currentStep === 3 ? 'text-green-600' : 'text-gray-400'
+                            }`} />
                         </div>
                         <div>
-                            <h4 className="text-sm font-medium text-foreground">3. Context Formation</h4>
+                            <h4 className={`text-sm font-medium text-foreground ${
+                                processStatus?.currentStep === 3 ? 'text-green-600' : ''
+                            }`}>3. Context Formation</h4>
                             <p className="text-xs text-muted-foreground">Retrieved documents ranked and formatted into structured context</p>
                         </div>
                     </div>
                     
-                    <div className="flex items-center space-x-3 mb-3">
-                        <div className="w-6 h-6 bg-gray-100 rounded-full flex items-center justify-center">
-                            <Sparkles className="w-3 h-3 text-gray-600" />
+                    <div className={`flex items-center space-x-3 mb-3 ${processStatus?.currentStep === 4 ? 'opacity-100' : 'opacity-60'}`}>
+                        <div className={`w-6 h-6 rounded-full flex items-center justify-center ${
+                            processStatus?.currentStep === 4 ? 'bg-purple-100' : 'bg-gray-100'
+                        }`}>
+                            <Sparkles className={`w-3 h-3 ${
+                                processStatus?.currentStep === 4 ? 'text-purple-600' : 'text-gray-400'
+                            }`} />
                         </div>
                         <div>
-                            <h4 className="text-sm font-medium text-foreground">4. LLM Generation</h4>
-                            <p className="text-xs text-muted-foreground">Language model processes context and generates response</p>
+                            <h4 className={`text-sm font-medium text-foreground ${
+                                processStatus?.currentStep === 4 ? 'text-purple-600' : ''
+                            }`}>4. Response Generation</h4>
+                            <p className="text-xs text-muted-foreground">Language model processes context and generates comprehensive response</p>
                         </div>
                     </div>
                     
-                    <div className="flex items-center space-x-3 mb-3">
-                        <div className="w-6 h-6 bg-gray-100 rounded-full flex items-center justify-center">
-                            <CheckCircle className="w-3 h-3 text-gray-600" />
+                    <div className={`flex items-center space-x-3 mb-3 ${processStatus?.currentStep === 5 ? 'opacity-100' : 'opacity-60'}`}>
+                        <div className={`w-6 h-6 rounded-full flex items-center justify-center ${
+                            processStatus?.currentStep === 5 ? 'bg-orange-100' : 'bg-gray-100'
+                        }`}>
+                            <CheckCircle className={`w-3 h-3 ${
+                                processStatus?.currentStep === 5 ? 'text-orange-600' : 'text-gray-400'
+                            }`} />
                         </div>
                         <div>
-                            <h4 className="text-sm font-medium text-foreground">5. Evaluation</h4>
-                            <p className="text-xs text-muted-foreground">Response quality assessed using RAG-specific metrics</p>
+                            <h4 className={`text-sm font-medium text-foreground ${
+                                processStatus?.currentStep === 5 ? 'text-orange-600' : ''
+                            }`}>5. Evaluation</h4>
+                            <p className="text-xs text-muted-foreground">Response quality assessed using RAG-specific metrics and accuracy checks</p>
                         </div>
                     </div>
                 </div>
