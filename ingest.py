@@ -89,6 +89,48 @@ for doc in documents:
 
 # --- EMEDDING ---
 # Step-3: Then we embed that chunk (meaning change the text into vector representations)
+from sentence_transformers import SentenceTransformer
+
+embedding_model = SentenceTransformer("all-MiniLM-L6-v2")
+
+# Why: Fast, Strong semantic quality, CPU-friendly, Industry standard
 
 
 # Step-4: Then store those vector representations in a vector-db supporting db (for our case chroma)
+import chromadb
+from chromadb.config import Settings
+
+chroma_client = chromadb.Client(
+    Settings(
+        persist_directory="./chroma",
+        anonymized_telemetry=False
+    )
+)
+
+# Step-5: Embed + store (this is the key loop)
+texts = [doc["text"] for doc in chunked_documents]
+ids = [doc["id"] for doc in chunked_documents]
+metadatas = [doc["metadata"] for doc in chunked_documents]
+
+embeddings = embedding_model.encode(texts, show_progress_bar=True)
+
+collection.add(
+    documents=texts,
+    embeddings=embeddings,
+    metadatas=metadatas,
+    ids=ids
+)
+
+chroma_client.persist()
+
+
+# Our final pipeline (conceptually)
+# TXT files
+#    ↓
+# Normalized text
+#    ↓
+# Overlapping semantic chunks
+#    ↓
+# SentenceTransformer embeddings
+#    ↓
+# Chroma vector store
