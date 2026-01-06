@@ -1,30 +1,68 @@
-import { Navbar } from '@/components/layout/Navbar';
+import { PlayerCard } from '@/components/players/PlayerCard';
+
+const starters = [
+    {
+        name: "Martin Ødegaard",
+        role: "Creative Engine / Captain",
+        stats: [
+            { label: "Vision", value: "Elite" },
+            { label: "xA p90", value: "0.42" }
+        ]
+    },
+    {
+        name: "Bukayo Saka",
+        role: "Inverted Winger",
+        stats: [
+            { label: "1v1 Success", value: "58%" },
+            { label: "Impact", value: "High" }
+        ]
+    },
+    {
+        name: "William Saliba",
+        role: "Central Defender",
+        stats: [
+            { label: "Recovery", value: "92%" },
+            { label: "Duels Won", value: "74%" }
+        ]
+    },
+    {
+        name: "Declan Rice",
+        role: "Box-to-Box Midfielder",
+        stats: [
+            { label: "Coverage", value: "12.4km" },
+            { label: "Interceptions", value: "3.2" }
+        ]
+    }
+];
 
 export default function PlayersPage() {
     return (
-        <div className="space-y-6">
-            <div className="flex items-center justify-between">
-                <h1 className="text-3xl font-bold tracking-tight">Player Analytics</h1>
-            </div>
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                <div className="rounded-xl border bg-card text-card-foreground shadow">
-                    <div className="p-6 flex flex-row items-center justify-between space-y-0 pb-2">
-                        <h3 className="tracking-tight text-sm font-medium">Total Squad Value</h3>
-                    </div>
-                    <div className="p-6 pt-0">
-                        <div className="text-2xl font-bold">€1.12B</div>
-                        <p className="text-xs text-muted-foreground">+4.5% from last month</p>
-                    </div>
+        <div className="space-y-8 animate-in fade-in duration-500">
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+                <div>
+                    <h1 className="text-4xl font-extrabold tracking-tight">First Team Squad</h1>
+                    <p className="text-muted-foreground mt-2">
+                        Intelligence-driven profiles for the current Arsenal starters.
+                    </p>
                 </div>
-                {/* Placeholder cards */}
-                {[1, 2, 3].map((i) => (
-                    <div key={i} className="rounded-xl border bg-card text-card-foreground shadow h-32 animate-pulse" />
+                <div className="text-xs font-bold uppercase tracking-widest text-red-600 bg-red-50 px-3 py-1 rounded-full border border-red-100">
+                    Last Sync: Today 14:00
+                </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                {starters.map((player) => (
+                    <PlayerCard key={player.name} {...player} />
                 ))}
             </div>
-            <div className="rounded-xl border bg-card text-card-foreground shadow min-h-[400px] flex items-center justify-center overflow-hidden">
-                <div className="text-muted-foreground text-center space-y-2">
-                    <p className="font-semibold text-lg">Detailed Stats Module Locked</p>
-                    <p className="text-sm max-w-[250px]">Data synchronization with Arsenal Database in progress...</p>
+
+            <div className="rounded-2xl border bg-card/50 p-12 shadow-sm text-center space-y-4">
+                <div className="max-w-md mx-auto">
+                    <h2 className="text-xl font-bold">Deep Archive Syncing</h2>
+                    <p className="text-muted-foreground text-sm mt-2">
+                        We are currently indexing historical player data from the 2003/04 Invincibles era
+                        and the 90s defensive records. Full squad availability expected in 14h.
+                    </p>
                 </div>
             </div>
         </div>
