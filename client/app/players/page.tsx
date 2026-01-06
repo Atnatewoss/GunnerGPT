@@ -37,7 +37,7 @@ const starters = [
 
 export default function PlayersPage() {
     return (
-        <div className="container mx-auto px-4 py-12 space-y-8 animate-in fade-in duration-500">
+        <div className="container mx-auto px-4 py-6 h-[calc(100vh-180px)] flex flex-col animate-in fade-in duration-500">
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
                 <div>
                     <h1 className="text-4xl font-extrabold tracking-tight">First Team Squad</h1>
@@ -50,19 +50,21 @@ export default function PlayersPage() {
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                {starters.map((player) => (
-                    <PlayerCard key={player.name} {...player} />
-                ))}
-            </div>
+            <div className="flex-1 overflow-y-auto space-y-8">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                    {starters.map((player) => (
+                        <PlayerCard key={player.name} {...player} />
+                    ))}
+                </div>
 
-            <div className="rounded-2xl border bg-card/50 p-12 shadow-sm text-center space-y-4">
-                <div className="max-w-md mx-auto">
-                    <h2 className="text-xl font-bold">Deep Archive Syncing</h2>
-                    <p className="text-muted-foreground text-sm mt-2">
-                        We are currently indexing historical player data from the 2003/04 Invincibles era
-                        and the 90s defensive records. Full squad availability expected in 14h.
-                    </p>
+                <div className="rounded-2xl border bg-card/50 p-12 shadow-sm text-center space-y-4">
+                    <div className="max-w-md mx-auto">
+                        <h2 className="text-xl font-bold">Deep Archive Syncing</h2>
+                        <p className="text-muted-foreground text-sm mt-2">
+                            We are currently indexing historical player data from the 2003/04 Invincibles era
+                            and the 90s defensive records. Full squad availability expected in 14h.
+                        </p>
+                    </div>
                 </div>
             </div>
         </div>

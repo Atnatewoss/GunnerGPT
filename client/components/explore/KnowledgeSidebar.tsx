@@ -6,7 +6,9 @@ import {
     Trophy,
     Settings2,
     Filter,
-    Check
+    Check,
+    User,
+    Heart
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Separator } from "@/components/ui/separator";
@@ -25,6 +27,8 @@ const categories = [
     { id: 'players', label: 'Player Analytics', icon: Users },
     { id: 'tactics', label: 'Tactical Patterns', icon: Settings2 },
     { id: 'seasons', label: 'Seasonal Archives', icon: Trophy },
+    { id: 'arteta', label: 'Arteta Era', icon: User },
+    { id: 'fans', label: 'Fan Intelligence', icon: Heart },
 ];
 
 interface KnowledgeSidebarProps {
