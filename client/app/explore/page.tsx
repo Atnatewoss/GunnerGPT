@@ -56,15 +56,33 @@ function KnowledgeExplorerContent() {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Only show query and category when submit button is clicked
-    setSubmittedQuery(query);
-    setSubmittedCategory(activeCategory);
-    console.log('Query:', query);
-    console.log('Active Category:', activeCategory);
-    // Clear the input box after submission
-    setQuery('');
+    if (!query.trim()) return;
+    
+    setIsLoading(true);
+    try {
+      // Call the backend API with query and category
+      const response = await api.query({
+        message: query,
+        n_results: 10
+      });
+      
+      // Store the submitted data and results
+      setSubmittedQuery(query);
+      setSubmittedCategory(activeCategory);
+      setResults(response);
+      
+      console.log('Query:', query);
+      console.log('Active Category:', activeCategory);
+      console.log('API Response:', response);
+    } catch (error) {
+      console.error('Query failed:', error);
+    } finally {
+      setIsLoading(false);
+      // Clear the input box after submission
+      setQuery('');
+    }
   };
 
   return (
@@ -92,6 +110,27 @@ function KnowledgeExplorerContent() {
                   <h3 className="text-sm font-semibold mb-2">Active Category</h3>
                   <p className="text-muted-foreground">{submittedCategory}</p>
                 </div>
+                {results && (
+                  <div className="bg-card/50 border rounded-xl p-4">
+                    <h3 className="text-sm font-semibold mb-2">Results ({results.results.length})</h3>
+                    <div className="space-y-3">
+                      {results.results.map((result, index) => (
+                        <div key={index} className="p-3 bg-background rounded-lg border">
+                          <p className="text-sm text-muted-foreground mb-2">{result.text}</p>
+                          {result.metadata && (
+                            <div className="text-xs text-muted-foreground">
+                              {Object.entries(result.metadata).map(([key, value]) => (
+                                <span key={key} className="mr-2">
+                                  {key}: {String(value)}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
             {!submittedQuery && (

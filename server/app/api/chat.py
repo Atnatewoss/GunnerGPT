@@ -3,7 +3,10 @@ Chat and query API routes
 """
 
 import logging
-from fastapi import APIRouter, HTTPException, BackgroundTasks
+import time
+from fastapi import APIRouter, HTTPException, BackgroundTasks, Request
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
 from ..models.chat import (
     QueryRequest, QueryResponse, DocumentResult,
     ChatRequest, ChatResponse, IngestResponse
@@ -15,17 +18,24 @@ from ..core.startup import embedding_model, collection
 
 logger = logging.getLogger(__name__)
 
+# Rate limiter: 10 requests per minute per IP
+limiter = Limiter(key_func=get_remote_address, default_limits=["10/minute"])
+
 router = APIRouter(tags=["chat", "query"])
 chat_service = ChatService()
 
 
 @router.post("/query", response_model=QueryResponse)
-async def query_knowledge_base(request: QueryRequest):
+@limiter.limit("10/minute")
+async def query_knowledge_base(request: QueryRequest, http_request: Request):
     """Query the knowledge base with semantic search"""
     if not embedding_model or not collection:
         raise HTTPException(status_code=503, detail="Services not initialized")
     
     try:
+        # Log the request with category info
+        logger.info(f"Query request from {get_remote_address(http_request)}: '{request.query}'")
+        
         # Retrieve documents
         documents = await retrieve_documents(request.query, request.n_results)
         
@@ -42,7 +52,6 @@ async def query_knowledge_base(request: QueryRequest):
         return QueryResponse(
             results=results,
             query=request.query,
-            total_results=len(results)
         )
         
     except Exception as e:

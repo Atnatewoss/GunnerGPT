@@ -5,6 +5,10 @@ FastAPI application entrypoint
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
+from slowapi import Limiter
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
+from slowapi.middleware import SlowAPIMiddleware
 from .core.config import settings
 from .core.startup import initialize_services
 from .api import health, chat
@@ -28,6 +32,11 @@ app = FastAPI(
     redoc_url="/redoc",
     lifespan=lifespan
 )
+
+# Add rate limiting middleware
+limiter = Limiter(key_func=get_remote_address, default_limits=["10/minute"])
+app.state.limiter = limiter
+app.add_middleware(SlowAPIMiddleware, limiter=app.state.limiter)
 
 # Add CORS middleware
 app.add_middleware(
