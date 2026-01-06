@@ -53,6 +53,13 @@ function KnowledgeExplorerContent() {
     }
   };
 
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    // For now, just display the input and active category
+    console.log('Query:', query);
+    console.log('Active Category:', activeCategory);
+  };
+
   return (
     <div className="container mx-auto px-4 py-6">
       <div className="flex bg-background border border-[#E30613]/10 rounded-2xl overflow-hidden shadow-2xl h-[calc(100vh-50px)] animate-in fade-in duration-1000">
@@ -66,15 +73,30 @@ function KnowledgeExplorerContent() {
 
         {/* Main Panel: Structured Analysis */}
         <main className="flex-1 flex flex-col min-w-0 bg-background relative overflow-hidden">
-          {/* Search Header for Main Panel */}
-          <div className="p-4 border-b bg-card/20 z-10">
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                handleSearch(query);
-              }}
-              className="relative group"
-            >
+          {/* Main Content Area */}
+          <div className="flex-1 overflow-hidden">
+            {query && (
+              <div className="p-6 space-y-4">
+                <div className="bg-card/50 border rounded-xl p-4">
+                  <h3 className="text-sm font-semibold mb-2">Query Input</h3>
+                  <p className="text-muted-foreground">{query}</p>
+                </div>
+                <div className="bg-card/50 border rounded-xl p-4">
+                  <h3 className="text-sm font-semibold mb-2">Active Category</h3>
+                  <p className="text-muted-foreground">{activeCategory}</p>
+                </div>
+              </div>
+            )}
+            {!query && (
+              <div className="flex items-center justify-center h-full">
+                <p className="text-muted-foreground">Enter a query below to get started</p>
+              </div>
+            )}
+          </div>
+
+          {/* Search Input at Bottom */}
+          <div className="p-4 border-t bg-card/20 z-10">
+            <form onSubmit={handleSubmit} className="relative group">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-red-600 transition-colors" />
               <Input
                 placeholder="Query the Arsenal Intelligence Layer..."
@@ -88,14 +110,6 @@ function KnowledgeExplorerContent() {
                 </div>
               )}
             </form>
-          </div>
-
-          <div className="flex-1 overflow-hidden">
-            <KnowledgeAnalysis
-              query={query}
-              isLoading={isLoading}
-              results={results}
-            />
           </div>
         </main>
 
