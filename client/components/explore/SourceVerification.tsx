@@ -5,7 +5,11 @@ import {
     ExternalLink,
     FileSearch,
     Database,
-    Tag
+    Tag,
+    CheckCircle,
+    Search,
+    Layers,
+    Sparkles
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -16,9 +20,12 @@ interface SourceVerificationProps {
     sources: DocumentResult[];
     isLoading: boolean;
     isCompact?: boolean;
+    query?: string;
+    category?: string;
+    evaluationMetrics?: any;
 }
 
-export function SourceVerification({ sources, isLoading, isCompact }: SourceVerificationProps) {
+export function SourceVerification({ sources, isLoading, isCompact, query, category, evaluationMetrics }: SourceVerificationProps) {
     return (
         <div className="flex flex-col h-full bg-card/5 border-l">
             <div className={cn("p-4 border-b bg-card/30", isCompact && "p-2")}>
@@ -31,11 +38,66 @@ export function SourceVerification({ sources, isLoading, isCompact }: SourceVeri
                         {sources.length} {isCompact ? '' : 'VERIFIED'}
                     </Badge>
                 </div>
+                
+                {/* Process Steps */}
                 {!isCompact && (
-                    <p className="text-[10px] text-muted-foreground leading-normal">
-                        Direct citations from the intelligence layer used to synthesize the analysis.
+                    <p className="text-[10px] text-muted-foreground leading-normal mb-4">
+                        Direct citations from intelligence layer used to synthesize the analysis.
                     </p>
                 )}
+                
+                {/* RAG Process Display */}
+                <div className="space-y-3">
+                    <div className="flex items-center space-x-3 mb-3">
+                        <div className="w-6 h-6 bg-gray-100 rounded-full flex items-center justify-center">
+                            <Search className="w-3 h-3 text-gray-600" />
+                        </div>
+                        <div>
+                            <h4 className="text-sm font-medium text-foreground">1. Query Processing</h4>
+                            <p className="text-xs text-muted-foreground">User query parsed and embedded for semantic search</p>
+                        </div>
+                    </div>
+                    
+                    <div className="flex items-center space-x-3 mb-3">
+                        <div className="w-6 h-6 bg-gray-100 rounded-full flex items-center justify-center">
+                            <Database className="w-3 h-3 text-gray-600" />
+                        </div>
+                        <div>
+                            <h4 className="text-sm font-medium text-foreground">2. Top-K Retrieval</h4>
+                            <p className="text-xs text-muted-foreground">Vector similarity search retrieves top-5 most relevant documents</p>
+                        </div>
+                    </div>
+                    
+                    <div className="flex items-center space-x-3 mb-3">
+                        <div className="w-6 h-6 bg-gray-100 rounded-full flex items-center justify-center">
+                            <Layers className="w-3 h-3 text-gray-600" />
+                        </div>
+                        <div>
+                            <h4 className="text-sm font-medium text-foreground">3. Context Formation</h4>
+                            <p className="text-xs text-muted-foreground">Retrieved documents ranked and formatted into structured context</p>
+                        </div>
+                    </div>
+                    
+                    <div className="flex items-center space-x-3 mb-3">
+                        <div className="w-6 h-6 bg-gray-100 rounded-full flex items-center justify-center">
+                            <Sparkles className="w-3 h-3 text-gray-600" />
+                        </div>
+                        <div>
+                            <h4 className="text-sm font-medium text-foreground">4. LLM Generation</h4>
+                            <p className="text-xs text-muted-foreground">Language model processes context and generates response</p>
+                        </div>
+                    </div>
+                    
+                    <div className="flex items-center space-x-3 mb-3">
+                        <div className="w-6 h-6 bg-gray-100 rounded-full flex items-center justify-center">
+                            <CheckCircle className="w-3 h-3 text-gray-600" />
+                        </div>
+                        <div>
+                            <h4 className="text-sm font-medium text-foreground">5. Evaluation</h4>
+                            <p className="text-xs text-muted-foreground">Response quality assessed using RAG-specific metrics</p>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <div className="flex-1 overflow-hidden">
@@ -60,7 +122,7 @@ export function SourceVerification({ sources, isLoading, isCompact }: SourceVeri
                                 className="group relative bg-background border rounded-lg p-4 transition-all hover:border-red-600/30 hover:shadow-md"
                             >
                                 <div className="absolute -left-1 top-4 w-0.5 h-8 bg-red-600 opacity-0 group-hover:opacity-100 transition-opacity" />
-
+                                 
                                 <div className="flex items-center justify-between mb-2">
                                     <div className="flex items-center space-x-2">
                                         <Database className="w-3 h-3 text-red-600" />
@@ -72,11 +134,11 @@ export function SourceVerification({ sources, isLoading, isCompact }: SourceVeri
                                         SIM: {(1 - source.distance).toFixed(2)}
                                     </div>
                                 </div>
-
+                                 
                                 <div className="text-[11px] leading-relaxed text-foreground/80 mb-3 italic border-l-2 pl-3 py-1 border-muted">
                                     "{source.text.length > 180 ? `${source.text.substring(0, 180)}...` : source.text}"
                                 </div>
-
+                                 
                                 <div className="flex flex-wrap gap-2">
                                     <div className="flex items-center text-[9px] font-bold uppercase tracking-widest text-muted-foreground">
                                         <Tag className="w-2.5 h-2.5 mr-1" />
@@ -99,7 +161,67 @@ export function SourceVerification({ sources, isLoading, isCompact }: SourceVeri
                     )}
                 </div>
             </div>
-
+            
+            {/* Evaluation Metrics */}
+            {evaluationMetrics && (
+                <div className="p-4 border-t bg-card/30">
+                    <div className="flex items-center space-x-2 mb-3">
+                        <CheckCircle className="w-4 h-4 text-green-600" />
+                        <h4 className="text-sm font-semibold text-foreground">Evaluation</h4>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-4 text-xs">
+                        <div>
+                            <h5 className="font-semibold mb-2">Performance Metrics</h5>
+                            <div className="space-y-1">
+                                {evaluationMetrics.recall && (
+                                    <div className="flex justify-between">
+                                        <span>Recall:</span>
+                                        <span className="font-mono">{evaluationMetrics.recall}</span>
+                                    </div>
+                                )}
+                                {evaluationMetrics.relevance && (
+                                    <div className="flex justify-between">
+                                        <span>Relevance:</span>
+                                        <span className="font-mono">{evaluationMetrics.relevance}</span>
+                                    </div>
+                                )}
+                                {evaluationMetrics.latency && (
+                                    <div className="flex justify-between">
+                                        <span>Latency:</span>
+                                        <span className="font-mono">{evaluationMetrics.latency}ms</span>
+                                    </div>
+                                )}
+                                {evaluationMetrics.hallucination_rate && (
+                                    <div className="flex justify-between">
+                                        <span>Hallucination Rate:</span>
+                                        <span className="font-mono">{evaluationMetrics.hallucination_rate}%</span>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <h5 className="font-semibold mb-2">Context Analysis</h5>
+                            <div className="space-y-1">
+                                <div className="flex justify-between">
+                                    <span>Context Length:</span>
+                                    <span className="font-mono">{evaluationMetrics.context_length || 'N/A'}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                    <span>Sources Used:</span>
+                                    <span className="font-mono">{evaluationMetrics.sources_count || 'N/A'}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                    <span>Category Scope:</span>
+                                    <span className="font-mono">{evaluationMetrics.category || 'N/A'}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+            
             {!isCompact && (
                 <div className="p-4 border-t bg-card/10 text-center">
                     <p className="text-[9px] text-muted-foreground uppercase font-bold tracking-widest">

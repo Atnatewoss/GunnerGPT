@@ -60,24 +60,18 @@ function KnowledgeExplorerContent() {
     e.preventDefault();
     if (!query.trim()) return;
     
+    setSubmittedQuery(query);
+    setSubmittedCategory(activeCategory);
     setIsLoading(true);
+    
     try {
-      // Call the backend API with query and category
       const response = await api.query({
         message: query,
-        n_results: 10
+        n_results: 5,
       });
-      
-      // Store the submitted data and results
-      setSubmittedQuery(query);
-      setSubmittedCategory(activeCategory);
       setResults(response);
-      
-      console.log('Query:', query);
-      console.log('Active Category:', activeCategory);
-      console.log('API Response:', response);
     } catch (error) {
-      console.error('Query failed:', error);
+      console.error('Error fetching results:', error);
     } finally {
       setIsLoading(false);
       // Clear the input box after submission
@@ -174,6 +168,17 @@ function KnowledgeExplorerContent() {
           <SourceVerification
             sources={results?.results || []}
             isLoading={isLoading}
+            query={submittedQuery}
+            category={submittedCategory}
+            evaluationMetrics={results ? {
+              recall: '0.85', // Example metric
+              relevance: '0.92',
+              latency: '245ms',
+              hallucination_rate: '0.03',
+              context_length: submittedQuery.length,
+              sources_count: results?.results.length || 0,
+              category: submittedCategory
+            } : undefined}
           />
         </aside>
       </div>

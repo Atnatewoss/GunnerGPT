@@ -44,6 +44,7 @@ class ChatRequest(BaseModel):
     """Request model for chat interactions"""
     message: str = Field(..., description="User message")
     context_length: int = Field(default=2000, ge=500, le=4000, description="Context length for RAG")
+    category: str = Field(default="all", description="Category/scope for the query")
 
 
 class ChatResponse(BaseModel):
@@ -51,3 +52,4 @@ class ChatResponse(BaseModel):
     response: str = Field(..., description="AI response")
     sources: List[DocumentResult] = Field(..., description="Source documents used")
     query: str = Field(..., description="Original user query")
+    evaluation_metrics: Optional[Dict[str, Any]] = Field(None, description="Performance evaluation metrics")

@@ -34,10 +34,14 @@ async def query_knowledge_base(request: QueryRequest, http_request: Request):
     
     try:
         # Log the request with category info
-        logger.info(f"Query request from {get_remote_address(http_request)}: '{request.query}'")
+        logger.info(f"Query request from {get_remote_address(http_request)}: '{request.query}' (category: '{getattr(request, 'category', 'all')}')")
         
-        # Retrieve documents
-        documents = await retrieve_documents(request.query, request.n_results)
+        # Retrieve documents using category as scope
+        documents = await retrieve_documents(
+            query=request.query, 
+            n_results=request.n_results,
+            category=getattr(request, 'category', 'all')
+        )
         
         # Convert to DocumentResult models
         results = [
