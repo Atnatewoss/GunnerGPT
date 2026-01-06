@@ -16,7 +16,7 @@ class Settings(BaseSettings):
     """Application settings"""
     
     # Knowledge Base
-    kb_path: Path = Path("../arsenal_kb")
+    kb_path: Path = Path("../../arsenal_kb")
     collection_name: str = "gunnergpt_arsenal_kb"
     
     # Embedding Model
