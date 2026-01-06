@@ -13,6 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 import { Navbar } from "@/components/layout/Navbar";
+import { ZoomWrapper } from "@/components/layout/ZoomWrapper";
 
 export default function RootLayout({
   children,
@@ -26,9 +27,9 @@ export default function RootLayout({
       >
         <div className="relative min-h-screen flex flex-col">
           <Navbar />
-          <main className="flex-1">
+          <ZoomWrapper>
             {children}
-          </main>
+          </ZoomWrapper>
         </div>
       </body>
     </html>
