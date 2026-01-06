@@ -8,7 +8,8 @@ import { KnowledgeSidebar } from '@/components/explore/KnowledgeSidebar';
 import { KnowledgeAnalysis } from '@/components/explore/KnowledgeAnalysis';
 import { SourceVerification } from '@/components/explore/SourceVerification';
 import { Input } from '@/components/ui/input';
-import { Search, Loader2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Search, Loader2, Send } from 'lucide-react';
 
 function KnowledgeExplorerContent() {
   const searchParams = useSearchParams();
@@ -19,6 +20,8 @@ function KnowledgeExplorerContent() {
   const [results, setResults] = useState<QueryResponse | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [stats, setStats] = useState<HealthResponse | null>(null);
+  const [submittedQuery, setSubmittedQuery] = useState('');
+  const [submittedCategory, setSubmittedCategory] = useState('');
 
   useEffect(() => {
     loadStats();
@@ -55,9 +58,13 @@ function KnowledgeExplorerContent() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // For now, just display the input and active category
+    // Only show query and category when submit button is clicked
+    setSubmittedQuery(query);
+    setSubmittedCategory(activeCategory);
     console.log('Query:', query);
     console.log('Active Category:', activeCategory);
+    // Clear the input box after submission
+    setQuery('');
   };
 
   return (
@@ -75,37 +82,47 @@ function KnowledgeExplorerContent() {
         <main className="flex-1 flex flex-col min-w-0 bg-background relative overflow-hidden">
           {/* Main Content Area */}
           <div className="flex-1 overflow-hidden">
-            {query && (
+            {submittedQuery && (
               <div className="p-6 space-y-4">
                 <div className="bg-card/50 border rounded-xl p-4">
                   <h3 className="text-sm font-semibold mb-2">Query Input</h3>
-                  <p className="text-muted-foreground">{query}</p>
+                  <p className="text-muted-foreground">{submittedQuery}</p>
                 </div>
                 <div className="bg-card/50 border rounded-xl p-4">
                   <h3 className="text-sm font-semibold mb-2">Active Category</h3>
-                  <p className="text-muted-foreground">{activeCategory}</p>
+                  <p className="text-muted-foreground">{submittedCategory}</p>
                 </div>
               </div>
             )}
-            {!query && (
+            {!submittedQuery && (
               <div className="flex items-center justify-center h-full">
-                <p className="text-muted-foreground">Enter a query below to get started</p>
+                <p className="text-muted-foreground">Enter a query and click send to get started</p>
               </div>
             )}
           </div>
 
           {/* Search Input at Bottom */}
           <div className="p-4 border-t bg-card/20 z-10">
-            <form onSubmit={handleSubmit} className="relative group">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-red-600 transition-colors" />
-              <Input
-                placeholder="Query the Arsenal Intelligence Layer..."
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                className="pl-10 h-10 bg-background/50 border-2 border-transparent focus-visible:border-red-600/20 focus-visible:ring-0 transition-all"
-              />
+            <form onSubmit={handleSubmit} className="flex gap-2">
+              <div className="relative group flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-red-600 transition-colors" />
+                <Input
+                  placeholder="Query the Arsenal Intelligence Layer..."
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  className="pl-10 h-10 bg-background/50 border-2 border-transparent focus-visible:border-red-600/20 focus-visible:ring-0 transition-all"
+                />
+              </div>
+              <Button 
+                type="submit" 
+                size="icon" 
+                className="h-10 w-10"
+                disabled={!query.trim()}
+              >
+                <Send className="w-4 h-4" />
+              </Button>
               {isLoading && (
-                <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                <div className="flex items-center">
                   <Loader2 className="w-4 h-4 text-red-600 animate-spin" />
                 </div>
               )}
