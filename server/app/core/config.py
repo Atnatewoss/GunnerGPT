@@ -29,6 +29,12 @@ class Settings(BaseSettings):
     chroma_tenant: Optional[str] = None
     chroma_db: Optional[str] = None
     
+    # Gemini API
+    gemini_api_key: Optional[str] = None
+    gemini_model: str = "gemini-2.0-flash-exp"
+    gemini_rate_limit_per_minute: int = 60
+    gemini_rate_limit_per_day: int = 1500
+    
     # API
     api_host: str = "0.0.0.0"
     api_port: int = 8000
