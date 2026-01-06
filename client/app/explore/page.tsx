@@ -1,23 +1,31 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Search } from 'lucide-react';
+import { useState, useEffect, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { api } from '@/lib/api';
 import { QueryResponse, HealthResponse } from '@/types/api';
-import { SearchInterface } from '@/components/SearchInterface';
-import { EvidenceDisplay } from '@/components/EvidenceDisplay';
-import { KnowledgeStats } from '@/components/KnowledgeStats';
-import { ExplorationPaths } from '@/components/ExplorationPaths';
+import { KnowledgeSidebar } from '@/components/explore/KnowledgeSidebar';
+import { KnowledgeAnalysis } from '@/components/explore/KnowledgeAnalysis';
+import { SourceVerification } from '@/components/explore/SourceVerification';
+import { Input } from '@/components/ui/input';
+import { Search, Loader2 } from 'lucide-react';
 
-export default function KnowledgeExplorer() {
-  const [query, setQuery] = useState('');
+function KnowledgeExplorerContent() {
+  const searchParams = useSearchParams();
+  const initialQuery = searchParams.get('query') || '';
+
+  const [query, setQuery] = useState(initialQuery);
+  const [activeCategory, setActiveCategory] = useState('all');
   const [results, setResults] = useState<QueryResponse | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [stats, setStats] = useState<HealthResponse | null>(null);
 
   useEffect(() => {
     loadStats();
-  }, []);
+    if (initialQuery) {
+      handleSearch(initialQuery);
+    }
+  }, [initialQuery]);
 
   const loadStats = async () => {
     try {
@@ -46,67 +54,69 @@ export default function KnowledgeExplorer() {
   };
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
-      {/* Dashboard Top Row */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="md:col-span-2">
-          <h1 className="text-3xl font-bold tracking-tight mb-2">Knowledge Explore</h1>
-          <p className="text-muted-foreground">
-            Search and analyze the Arsenal intelligence database.
-          </p>
-        </div>
-        <div className="flex justify-end items-start pt-2">
-          <KnowledgeStats stats={stats} />
-        </div>
-      </div>
+    <div className="flex bg-background border rounded-2xl overflow-hidden shadow-2xl h-[calc(100vh-140px)] animate-in fade-in duration-1000">
+      {/* Left Panel: Filters & Categories */}
+      <aside className="w-64 flex-shrink-0">
+        <KnowledgeSidebar
+          activeCategory={activeCategory}
+          onCategoryChange={setActiveCategory}
+        />
+      </aside>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Left Column - Search & Exploration */}
-        <div className="lg:col-span-1 space-y-6">
-          <div className="rounded-xl border bg-card p-1 shadow-sm">
-            <SearchInterface
-              onSearch={handleSearch}
-              isLoading={isLoading}
-              query={query}
-              setQuery={setQuery}
+      {/* Main Panel: Structured Analysis */}
+      <main className="flex-1 flex flex-col min-w-0 bg-background relative overflow-hidden">
+        {/* Search Header for Main Panel */}
+        <div className="p-4 border-b bg-card/20 z-10">
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleSearch(query);
+            }}
+            className="relative group"
+          >
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-red-600 transition-colors" />
+            <Input
+              placeholder="Query the Arsenal Intelligence Layer..."
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              className="pl-10 h-10 bg-background/50 border-2 border-transparent focus-visible:border-red-600/20 focus-visible:ring-0 transition-all"
             />
-          </div>
-
-          <ExplorationPaths />
-        </div>
-
-        {/* Right Column - Results */}
-        <div className="lg:col-span-2">
-          <div className="min-h-[400px]">
             {isLoading && (
-              <div className="flex flex-col items-center justify-center py-24 space-y-4">
-                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-red-600"></div>
-                <p className="text-sm text-muted-foreground animate-pulse">Consulting intelligence records...</p>
+              <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                <Loader2 className="w-4 h-4 text-red-600 animate-spin" />
               </div>
             )}
-
-            {!isLoading && !results && (
-              <div className="text-center py-24 border-2 border-dashed rounded-xl bg-card/10">
-                <Search className="w-16 h-16 mx-auto text-muted-foreground/30 mb-4" />
-                <h2 className="text-xl font-semibold text-foreground mb-2">
-                  System Awaiting Input
-                </h2>
-                <p className="text-muted-foreground max-w-sm mx-auto text-sm leading-relaxed">
-                  Enter a query to retrieve evidence-based insights from match history,
-                  player statistics, and tactical archives.
-                </p>
-              </div>
-            )}
-
-            {!isLoading && results && (
-              <EvidenceDisplay
-                results={results.results}
-                query={results.query}
-              />
-            )}
-          </div>
+          </form>
         </div>
-      </div>
+
+        <div className="flex-1 overflow-hidden">
+          <KnowledgeAnalysis
+            query={query}
+            isLoading={isLoading}
+            results={results}
+          />
+        </div>
+      </main>
+
+      {/* Right Panel: Evidence & Sources */}
+      <aside className="w-80 flex-shrink-0 hidden lg:block">
+        <SourceVerification
+          sources={results?.results || []}
+          isLoading={isLoading}
+        />
+      </aside>
     </div>
+  );
+}
+
+export default function KnowledgeExplorer() {
+  return (
+    <Suspense fallback={
+      <div className="h-[calc(100vh-140px)] flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-red-600 animate-spin" />
+      </div>
+    }>
+      <KnowledgeExplorerContent />
+    </Suspense>
   );
 }
