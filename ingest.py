@@ -97,31 +97,56 @@ embedding_model = SentenceTransformer("all-MiniLM-L6-v2")
 
 
 # Step-4: Then store those vector representations in a vector-db supporting db (for our case chroma)
+# Initialize Chroma Cloud client
+
 import chromadb
 from chromadb.config import Settings
+import os
 
 chroma_client = chromadb.Client(
     Settings(
-        persist_directory="./chroma",
-        anonymized_telemetry=False
+        chroma_api_impl="rest",
+        chroma_server_host="api.trychroma.com",
+        chroma_server_http_port=443,
+        chroma_server_ssl_enabled=True,
+        tenant=os.environ["CHROMA_TENANT"],
+        database=os.environ["CHROMA_DATABASE"],
+        api_key=os.environ["CHROMA_API_KEY"],
     )
 )
 
-# Step-5: Embed + store (this is the key loop)
-texts = [doc["text"] for doc in chunked_documents]
-ids = [doc["id"] for doc in chunked_documents]
-metadatas = [doc["metadata"] for doc in chunked_documents]
-
-embeddings = embedding_model.encode(texts, show_progress_bar=True)
-
-collection.add(
-    documents=texts,
-    embeddings=embeddings,
-    metadatas=metadatas,
-    ids=ids
+# Step-5: Create / get your collection, Collections are like tables.
+collection = chroma_client.get_or_create_collection(
+    name="arsenal_kb"
 )
 
-chroma_client.persist()
+# If it exists → reused
+# If not → created
+
+
+# Step-6: Embed + store chunks in chroma cloud (this is the key loop)
+from sentence_transformers import SentenceTransformer
+import uuid
+
+model = SentenceTransformer("all-MiniLM-L6-v2")
+
+texts = [doc["text"] for doc in chunked_documents]
+embeddings = model.encode(texts, show_progress_bar=True)
+
+collection.add(
+    ids=[str(uuid.uuid4()) for _ in texts],
+    documents=texts,
+    embeddings=embeddings.tolist(),
+    metadatas=[
+        {
+            "source": doc["source"],
+            "category": doc["category"],
+            "chunk_id": doc["chunk_id"],
+        }
+        for doc in chunked_documents
+    ]
+)
+
 
 
 # Our final pipeline (conceptually)
