@@ -1,16 +1,43 @@
 # GunnerGPT FastAPI Server
 
-A FastAPI backend for managing and querying the Arsenal FC knowledge base.
+A production-ready FastAPI backend for managing and querying the Arsenal FC knowledge base using RAG (Retrieval-Augmented Generation).
 
 ## Directory Structure
 
 ```
 server/
-├── main.py           # Main FastAPI application
-├── requirements.txt  # Server dependencies
-├── test_client.py   # Test client script
-└── README.md        # This file
+├── app/
+│   ├── main.py              # FastAPI entrypoint
+│   ├── api/                 # HTTP layer (routes only)
+│   │   ├── chat.py         # Chat and query endpoints
+│   │   └── health.py       # Health check endpoints
+│   ├── rag/                 # 🧠 RAG domain (core functionality)
+│   │   ├── ingest.py       # Offline/admin ingestion
+│   │   ├── retriever.py    # Similarity search
+│   │   ├── embeddings.py   # Embedding logic
+│   │   ├── vectorstore.py  # Chroma abstraction
+│   │   └── prompts.py      # Prompt templates
+│   ├── services/            # Business logic
+│   │   └── chat_service.py # Chat processing logic
+│   ├── core/                # Config, env, startup
+│   │   ├── config.py       # Application settings
+│   │   └── startup.py      # Service initialization
+│   └── models/              # Pydantic schemas
+│       └── chat.py         # Request/response models
+├── requirements.txt         # Server dependencies
+├── test_client.py          # Test client script
+└── README.md               # This file
 ```
+
+## Architecture
+
+The application follows a clean layered architecture:
+
+- **API Layer**: FastAPI routes handling HTTP requests/responses
+- **Services Layer**: Business logic and orchestration
+- **RAG Domain**: Core retrieval and generation functionality
+- **Core Layer**: Configuration, startup, and shared utilities
+- **Models**: Pydantic schemas for type safety
 
 ## Setup
 
@@ -33,7 +60,7 @@ CHROMA_DB=your_database
 
 4. Start the server:
 ```bash
-python main.py
+python -m app.main
 ```
 
 The API will be available at `http://localhost:8000`
@@ -42,10 +69,40 @@ The API will be available at `http://localhost:8000`
 
 ### Health Check
 ```
-GET /health
+GET /health/
 ```
 
-Returns the health status of the service.
+Returns comprehensive health status including service states and collection info.
+
+### Query Knowledge Base
+```
+POST /query
+```
+
+Query the knowledge base with semantic search.
+
+**Request Body:**
+```json
+{
+  "query": "Who is Arsenal's current manager?",
+  "n_results": 5
+}
+```
+
+### Chat with RAG
+```
+POST /chat
+```
+
+Chat with the AI using Retrieval-Augmented Generation.
+
+**Request Body:**
+```json
+{
+  "message": "Tell me about Arsenal's history",
+  "context_length": 1500
+}
+```
 
 ### Ingest Knowledge Base
 
@@ -63,21 +120,6 @@ POST /ingest
 
 Triggers knowledge base ingestion in the background.
 
-### Query Knowledge Base
-```
-POST /query
-```
-
-Query the knowledge base with semantic search.
-
-**Request Body:**
-```json
-{
-  "query": "Who is Arsenal's current manager?",
-  "n_results": 5
-}
-```
-
 ## Testing
 
 Run the test client to verify API functionality:
@@ -91,9 +133,19 @@ Once the server is running, visit:
 - **Swagger UI**: `http://localhost:8000/docs`
 - **ReDoc**: `http://localhost:8000/redoc`
 
+## Configuration
+
+Key configuration parameters in `app/core/config.py`:
+
+- `embedding_model_name`: "all-MiniLM-L6-v2"
+- `chunk_size`: 600 characters
+- `chunk_overlap`: 120 characters
+- `collection_name`: "gunnergpt_arsenal_kb"
+- `kb_path`: "../arsenal_kb" (relative to server directory)
+
 ## Knowledge Base Structure
 
-The server expects TXT files in the `../arsenal_kb/` directory (relative to server directory):
+The server expects TXT files in the `../arsenal_kb/` directory:
 ```
 ../arsenal_kb/
 ├── players/
@@ -107,11 +159,14 @@ The server expects TXT files in the `../arsenal_kb/` directory (relative to serv
     └── staff.txt
 ```
 
-## Configuration
+Files are automatically chunked and categorized based on their directory structure.
 
-Key configuration parameters in `main.py`:
+## Features
 
-- `EMBEDDING_MODEL_NAME`: "all-MiniLM-L6-v2"
-- `CHUNK_SIZE`: 600 characters
-- `CHUNK_OVERLAP`: 120 characters
-- `COLLECTION_NAME`: "gunnergpt_arsenal_kb"
+- **Semantic Search**: Advanced similarity search using embeddings
+- **RAG Chat**: Intelligent responses with context awareness
+- **Async Processing**: Background ingestion support
+- **Health Monitoring**: Comprehensive service health checks
+- **Type Safety**: Full Pydantic model validation
+- **Modular Design**: Clean separation of concerns
+- **Production Ready**: CORS middleware, proper error handling, logging
