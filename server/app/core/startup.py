@@ -2,6 +2,7 @@
 Application startup and dependency injection
 """
 
+import os
 import logging
 from sentence_transformers import SentenceTransformer
 import chromadb
@@ -33,11 +34,11 @@ async def initialize_chroma_client():
     """Initialize ChromaDB client"""
     global chroma_client, collection
     try:
-        # Check if Chroma Cloud credentials are available
-        if not all([settings.chroma_api_key, settings.chroma_tenant, settings.chroma_db]):
-            logger.warning("Chroma Cloud credentials not found. ChromaDB features will be disabled.")
+        # Use CloudClient for remote storage
+        if not settings.chroma_api_key:
+            logger.error("CHROMA_API_KEY is not set")
             return False
-        
+            
         chroma_client = chromadb.CloudClient(
             tenant=settings.chroma_tenant,
             database=settings.chroma_db,
@@ -48,10 +49,10 @@ async def initialize_chroma_client():
             name=settings.collection_name,
             metadata={"description": "Arsenal FC knowledge base for GunnerGPT"}
         )
-        logger.info("Connected to Chroma Cloud successfully")
+        logger.info(f"Initialized Chroma Cloud client for collection: {settings.collection_name}")
         return True
     except Exception as e:
-        logger.error(f"Failed to initialize Chroma client: {e}")
+        logger.error(f"Failed to initialize Chroma Cloud client: {e}")
         return False
 
 
