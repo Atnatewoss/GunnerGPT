@@ -135,7 +135,7 @@ METRICS:
 
 ## What This Proves
 
-By running this script, evaluators can see:
+By running this script, you can see:
 
 1. **Real Document Retrieval**: Actual documents from ChromaDB with similarity scores
 2. **Live LLM Generation**: Genuine API calls to Gemini (not hardcoded responses)
@@ -161,7 +161,7 @@ By running this script, evaluators can see:
 - **Cause**: Knowledge base not ingested
 - **Solution**: Run `python -m app.ingest.sync_data` to populate ChromaDB
 
-## For Evaluators
+## For Users who wants a quick test
 
 This standalone runner is the **definitive proof** that the RAG system is:
 - **Not faked**: Every step is logged and verifiable

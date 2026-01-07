@@ -95,7 +95,7 @@ curl -X POST http://localhost:8000/ingest/sync
 
 ### Standalone RAG Pipeline Runner
 
-For **evaluators** who want to test the RAG system independently without the web interface:
+For **anyone** who want to test the RAG system independently without the web interface:
 
 ```bash
 cd server
