@@ -14,7 +14,7 @@ from ..models.chat import (
 from ..services.chat_service import ChatService
 from ..rag.ingest import ingest_knowledge_base
 from ..rag.retriever import retrieve_documents
-from ..core.startup import embedding_model, collection
+from ..core import startup
 
 logger = logging.getLogger(__name__)
 
@@ -26,10 +26,10 @@ chat_service = ChatService()
 
 
 @router.post("/query", response_model=QueryResponse)
-@limiter.limit("10/minute")
+# @limiter.limit("10/minute")  # Temporarily disable rate limiting for debugging
 async def query_knowledge_base(request: Request, query_request: QueryRequest):
     """Query the knowledge base with semantic search"""
-    if not embedding_model or not collection:
+    if not startup.embedding_model or not startup.collection:
         raise HTTPException(status_code=503, detail="Services not initialized")
     
     try:
@@ -66,7 +66,7 @@ async def query_knowledge_base(request: Request, query_request: QueryRequest):
 @router.post("/chat", response_model=ChatResponse)
 async def chat_with_rag(request: ChatRequest):
     """Chat with the AI using RAG (Retrieval-Augmented Generation)"""
-    if not embedding_model or not collection:
+    if not startup.embedding_model or not startup.collection:
         raise HTTPException(status_code=503, detail="Services not initialized")
     
     try:
@@ -81,7 +81,7 @@ async def chat_with_rag(request: ChatRequest):
 @router.post("/ingest", response_model=IngestResponse)
 async def trigger_ingestion(background_tasks: BackgroundTasks):
     """Trigger knowledge base ingestion in background"""
-    if not embedding_model or not collection:
+    if not startup.embedding_model or not startup.collection:
         raise HTTPException(status_code=503, detail="Services not initialized")
     
     try:
@@ -106,7 +106,7 @@ async def trigger_ingestion(background_tasks: BackgroundTasks):
 @router.post("/ingest/sync", response_model=IngestResponse)
 async def trigger_ingestion_sync():
     """Trigger knowledge base ingestion synchronously"""
-    if not embedding_model or not collection:
+    if not startup.embedding_model or not startup.collection:
         raise HTTPException(status_code=503, detail="Services not initialized")
     
     try:
