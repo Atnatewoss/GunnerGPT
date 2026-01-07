@@ -47,7 +47,10 @@ async def initialize_chroma_client():
         
         collection = chroma_client.get_or_create_collection(
             name=settings.collection_name,
-            metadata={"description": "Arsenal FC knowledge base for GunnerGPT"}
+            metadata={
+                "description": "Arsenal FC knowledge base for GunnerGPT",
+                "hnsw:space": "cosine"
+            }
         )
         logger.info(f"Initialized Chroma Cloud client for collection: {settings.collection_name}")
         return True
