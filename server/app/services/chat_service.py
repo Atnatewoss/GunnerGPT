@@ -10,6 +10,7 @@ from ..rag.retriever import retrieve_documents
 from ..rag.prompts import format_chat_prompt, SYSTEM_PROMPT
 from ..models.chat import DocumentResult, ChatRequest, ChatResponse
 from .llm_service import llm_service
+from ..core.rag_logger import RAGLogger
 
 logger = logging.getLogger(__name__)
 
@@ -28,6 +29,9 @@ class ChatService:
             Chat response with AI answer and sources
         """
         try:
+            RAGLogger.log_query(request.message)
+            RAGLogger.log_step("ORCHESTRATION", "Processing query via RAG pipeline")
+            
             start_time = time.time()
             
             # Retrieve relevant documents
@@ -44,6 +48,8 @@ class ChatService:
             
             # Calculate metrics
             total_time = (time.time() - start_time) * 1000  # ms
+            
+            RAGLogger.log_llm_response(response, total_time)
             
             # Calculate average relevance (1 - distance)
             avg_relevance = 0.0
@@ -105,7 +111,14 @@ class ChatService:
                     context_parts.append(truncated_text)
                 break
         
-        return "\n".join(context_parts)
+                if remaining_space > 100:  # Only add if meaningful space remains
+                    truncated_text = doc_text[:remaining_space - 3] + "..."
+                    context_parts.append(truncated_text)
+                break
+        
+        final_context = "\n".join(context_parts)
+        RAGLogger.log_context_assembly(final_context, len(final_context.split()))
+        return final_context
     
     async def _generate_llm_response(self, question: str, context: str) -> str:
         """Generate response using LLM service"""

@@ -8,7 +8,9 @@ import logging
 from typing import Optional, Dict, Any
 import google.genai as genai
 from fastapi import HTTPException
+from fastapi import HTTPException
 from ..core.config import settings
+from ..core.rag_logger import RAGLogger
 
 logger = logging.getLogger(__name__)
 
@@ -98,6 +100,7 @@ class LLMService:
             return None
         
         try:
+            RAGLogger.log_llm_call(len(prompt), settings.gemini_model)
             # Generate response using new SDK pattern
             response = await asyncio.to_thread(
                 self._client.models.generate_content,

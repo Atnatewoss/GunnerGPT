@@ -3,8 +3,12 @@ Vector store abstraction for ChromaDB
 """
 
 from typing import List, Dict, Any, Optional
+import logging
 from ..core.startup import get_chroma_collection
 from ..core.config import settings
+from ..core.rag_logger import RAGLogger
+
+logger = logging.getLogger(__name__)
 
 
 class VectorStore:
@@ -67,7 +71,22 @@ class VectorStore:
             where=where_clause
         )
         
-        return results
+        # Format results
+        formatted_results = []
+        if results["ids"] and results["ids"][0]:
+            num_results = len(results["ids"][0])
+            RAGLogger.log_retrieval_start(len(query_embedding), num_results)
+            
+            for i in range(num_results):
+                formatted_results.append({
+                    "id": results["ids"][0][i],
+                    "text": results["documents"][0][i],
+                    "metadata": results["metadatas"][0][i],
+                    "distance": results["distances"][0][i] if results["distances"] else 0.0
+                })
+        
+        RAGLogger.log_retrieved_documents(formatted_results)
+        return formatted_results
     
     async def get_collection_info(self) -> Dict[str, Any]:
         """Get information about the collection"""
