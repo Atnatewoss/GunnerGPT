@@ -28,8 +28,15 @@ class VectorStore:
         if self.collection is None:
             await self.initialize()
         
-        # Clear existing collection
-        self.collection.delete()
+        # Clear existing collection - use empty where clause to matches all
+        try:
+            # First try getting all IDs
+            get_result = self.collection.get()
+            if get_result and get_result['ids']:
+                self.collection.delete(ids=get_result['ids'])
+        except Exception as e:
+            # Fallback or ignore if empty
+            pass
         
         # Add new documents
         self.collection.add(
@@ -42,15 +49,22 @@ class VectorStore:
     async def query(
         self,
         query_embedding: List[float],
-        n_results: int = 5
+        n_results: int = 5,
+        category: str = "all"
     ) -> Dict[str, Any]:
         """Query the vector store for similar documents"""
         if self.collection is None:
             await self.initialize()
         
+        # Build where clause for category filtering
+        where_clause = None
+        if category and category != "all":
+            where_clause = {"category": category}
+        
         results = self.collection.query(
             query_embeddings=[query_embedding],
-            n_results=n_results
+            n_results=n_results,
+            where=where_clause
         )
         
         return results
