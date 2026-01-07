@@ -18,6 +18,12 @@ export interface ChatResponse {
   response: string;
   sources: DocumentResult[];
   query: string;
+  evaluation_metrics?: {
+    latency: string;
+    relevance: string;
+    context_length: number;
+    [key: string]: any;
+  };
 }
 
 export interface QueryResponse {

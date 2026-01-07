@@ -2,7 +2,7 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { api } from '@/lib/api';
+import { api, ApiError } from '@/lib/api';
 import { QueryResponse, HealthResponse } from '@/types/api';
 import { KnowledgeSidebar } from '@/components/explore/KnowledgeSidebar';
 import { KnowledgeAnalysis } from '@/components/explore/KnowledgeAnalysis';
@@ -10,6 +10,7 @@ import { SourceVerification } from '@/components/explore/SourceVerification';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Search, Loader2, Send } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 function KnowledgeExplorerContent() {
   const searchParams = useSearchParams();
@@ -19,8 +20,10 @@ function KnowledgeExplorerContent() {
   const [activeCategory, setActiveCategory] = useState('all');
   const [currentAnswer, setCurrentAnswer] = useState<string | null>(null);
   const [currentSources, setCurrentSources] = useState<any[]>([]);
+  const [currentMetrics, setCurrentMetrics] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [submittedQuery, setSubmittedQuery] = useState('');
+  const [isRateLimited, setIsRateLimited] = useState(false);
   const [processStatus, setProcessStatus] = useState({
     currentStep: 0,
     queryReceived: false,
@@ -55,6 +58,7 @@ function KnowledgeExplorerContent() {
     setIsLoading(true);
     setCurrentAnswer(null);
     setCurrentSources([]);
+    setCurrentMetrics(null);
 
     // Reset and start process
     setProcessStatus({
@@ -86,6 +90,7 @@ function KnowledgeExplorerContent() {
       setProcessStatus(prev => ({ ...prev, currentStep: 4, responseGenerated: true }));
       setCurrentAnswer(response.response);
       setCurrentSources(response.sources);
+      setCurrentMetrics(response.evaluation_metrics);
 
       // Step 5: Evaluation - Complete
       setProcessStatus(prev => ({ ...prev, currentStep: 5, evaluationComplete: true }));
@@ -95,7 +100,22 @@ function KnowledgeExplorerContent() {
 
     } catch (error) {
       console.error('Error fetching results:', error);
-      setCurrentAnswer('Sorry, I encountered an error retrieving that information.');
+
+      console.error('Error fetching results:', error);
+
+      // Duck typing check for error status (handles generic Objects and ApiErrors)
+      const isRateLimit = (error as any)?.status === 429 ||
+        (error instanceof ApiError && error.status === 429);
+
+      if (isRateLimit) {
+        setIsRateLimited(true);
+        setCurrentAnswer('System overload: The AI is currently experiencing high traffic. Please try again in 60 seconds.');
+        // Auto-reset after 60s
+        setTimeout(() => setIsRateLimited(false), 60000);
+      } else {
+        setCurrentAnswer('Sorry, I encountered an error retrieving that information.');
+      }
+
       setProcessStatus(prev => ({ ...prev, currentStep: 0 }));
     } finally {
       setIsLoading(false);
@@ -165,17 +185,21 @@ function KnowledgeExplorerContent() {
               <div className="relative group flex-1">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-red-600 transition-colors" />
                 <Input
-                  placeholder="Query the Arsenal Intelligence Layer..."
+                  placeholder={isRateLimited ? "Rate limited (cooldown active)..." : "Query the Arsenal Intelligence Layer..."}
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
-                  className="pl-10 h-10 bg-background/50 border-2 border-transparent focus-visible:border-red-600/20 focus-visible:ring-0 transition-all"
+                  disabled={isRateLimited}
+                  className={cn(
+                    "pl-10 h-10 bg-background/50 border-2 border-transparent focus-visible:border-red-600/20 focus-visible:ring-0 transition-all",
+                    isRateLimited && "opacity-50 cursor-not-allowed border-red-200 bg-red-50/10"
+                  )}
                 />
               </div>
               <Button
                 type="submit"
                 size="icon"
                 className="h-10 w-10"
-                disabled={!query.trim() || isLoading}
+                disabled={!query.trim() || isLoading || isRateLimited}
               >
                 <Send className="w-4 h-4" />
               </Button>
@@ -190,15 +214,7 @@ function KnowledgeExplorerContent() {
             isLoading={isLoading}
             query={submittedQuery}
             category={activeCategory}
-            evaluationMetrics={currentAnswer ? {
-              recall: '0.90',
-              relevance: '0.95',
-              latency: '312ms',
-              hallucination_rate: '0.01',
-              context_length: submittedQuery.length,
-              sources_count: currentSources.length,
-              category: activeCategory
-            } : undefined}
+            evaluationMetrics={currentMetrics}
             processStatus={processStatus}
           />
         </aside>

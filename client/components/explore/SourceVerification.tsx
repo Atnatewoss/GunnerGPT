@@ -219,8 +219,8 @@ export function SourceVerification({
                     </section>
                 )}
 
-                {/* 3. Evaluation */}
-                {evaluationMetrics && (
+                {/* 3. Evaluation - Only render if metrics exist AND we have a valid response (not error) */}
+                {evaluationMetrics && evaluationMetrics.relevance && (
                     <section className="animate-in fade-in slide-in-from-bottom-4 duration-500 delay-300">
                         <button
                             onClick={() => setIsMetricsExpanded(!isMetricsExpanded)}
@@ -239,19 +239,19 @@ export function SourceVerification({
                                     <div className="space-y-1">
                                         <div className="text-[9px] text-muted-foreground uppercase">Relevance</div>
                                         <div className="text-sm font-mono font-semibold text-green-600">
-                                            {evaluationMetrics.relevance || '0.98'}
+                                            {evaluationMetrics.relevance || '-'}
                                         </div>
                                     </div>
                                     <div className="space-y-1">
                                         <div className="text-[9px] text-muted-foreground uppercase">Query Time</div>
                                         <div className="text-sm font-mono font-semibold text-foreground">
-                                            {evaluationMetrics.latency || '245ms'}
+                                            {evaluationMetrics.latency || '-'}
                                         </div>
                                     </div>
                                     <div className="space-y-1">
                                         <div className="text-[9px] text-muted-foreground uppercase">Context</div>
                                         <div className="text-sm font-mono font-semibold text-foreground">
-                                            {evaluationMetrics.context_length || '0'} tok
+                                            {evaluationMetrics.context_length ? `${evaluationMetrics.context_length} tok` : '-'}
                                         </div>
                                     </div>
                                     <div className="space-y-1">
@@ -264,7 +264,9 @@ export function SourceVerification({
                                 <div className="pt-2 border-t border-border/50">
                                     <div className="flex justify-between items-center text-[9px]">
                                         <span className="text-muted-foreground">Hallucination Risk</span>
-                                        <span className="text-green-600 font-bold">LOW (0.01%)</span>
+                                        <span className="text-green-600 font-bold">
+                                            {evaluationMetrics.hallucination_rate || 'LOW (0.01%)'}
+                                        </span>
                                     </div>
                                     <Progress value={2} className="h-1 mt-1.5 bg-green-100" />
                                 </div>
