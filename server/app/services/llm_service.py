@@ -7,6 +7,7 @@ import time
 import logging
 from typing import Optional, Dict, Any
 import google.genai as genai
+from fastapi import HTTPException
 from ..core.config import settings
 
 logger = logging.getLogger(__name__)
@@ -134,7 +135,7 @@ class LLMService:
                 "429" in error_message or 
                 "resource exhausted" in error_message.lower()):
                 logger.warning("API quota exceeded")
-                return None
+                raise HTTPException(status_code=429, detail="Rate limit exceeded. Please try again later.")
             
             return None
     

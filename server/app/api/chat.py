@@ -73,6 +73,8 @@ async def chat_with_rag(request: ChatRequest):
         response = await chat_service.process_query(request)
         return response
         
+    except HTTPException as he:
+        raise he
     except Exception as e:
         logger.error(f"Chat failed: {e}")
         raise HTTPException(status_code=500, detail=f"Chat failed: {str(e)}")
