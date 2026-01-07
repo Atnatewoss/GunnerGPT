@@ -1,5 +1,4 @@
 # GunnerGPT: Arsenal FC Intelligence Layer
-### Group 6 - RAG System Assignment
 
 ![Project Badge](https://img.shields.io/badge/Status-Operational-green) ![Tech Stack](https://img.shields.io/badge/Stack-FastAPI%20%7C%20Next.js%20%7C%20ChromaDB%20%7C%20Gemini-red)
 
