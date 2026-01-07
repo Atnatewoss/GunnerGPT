@@ -8,7 +8,7 @@ from pydantic_settings import BaseSettings
 from typing import Optional
 
 
-# Get the absolute path to the .env file
+# Get the path to the .env file
 env_path = Path(__file__).parent.parent.parent / ".env"
 
 
@@ -16,7 +16,7 @@ class Settings(BaseSettings):
     """Application settings"""
     
     # Knowledge Base
-    kb_path: Path = Path("../../arsenal_kb")
+    kb_path: Path = Path("../arsenal_kb")
     collection_name: str = "gunnergpt_arsenal_kb"
     
     # Embedding Model
