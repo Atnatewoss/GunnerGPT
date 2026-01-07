@@ -26,7 +26,7 @@ chat_service = ChatService()
 
 
 @router.post("/query", response_model=QueryResponse)
-# @limiter.limit("10/minute")  # Temporarily disable rate limiting for debugging
+@limiter.limit("10/minute")  # Temporarily disable rate limiting for debugging, when needed, or i can just generate a new one
 async def query_knowledge_base(request: Request, query_request: QueryRequest):
     """Query the knowledge base with semantic search"""
     if not startup.embedding_model or not startup.collection:
