@@ -3,7 +3,9 @@ Business logic for chat operations
 """
 
 import logging
+import time
 from typing import List
+from fastapi import HTTPException
 from ..rag.retriever import retrieve_documents
 from ..rag.prompts import format_chat_prompt, SYSTEM_PROMPT
 from ..models.chat import DocumentResult, ChatRequest, ChatResponse
@@ -26,6 +28,8 @@ class ChatService:
             Chat response with AI answer and sources
         """
         try:
+            start_time = time.time()
+            
             # Retrieve relevant documents
             documents = await retrieve_documents(
                 query=request.message,
@@ -37,6 +41,16 @@ class ChatService:
             
             # Generate response using LLM
             response = await self._generate_llm_response(request.message, context)
+            
+            # Calculate metrics
+            total_time = (time.time() - start_time) * 1000  # ms
+            
+            # Calculate average relevance (1 - distance)
+            avg_relevance = 0.0
+            if documents:
+                distances = [doc.get("distance", 1.0) for doc in documents]
+                similarities = [1 - d for d in distances]
+                avg_relevance = sum(similarities) / len(similarities)
             
             # Convert to DocumentResult models
             source_results = [
@@ -51,8 +65,16 @@ class ChatService:
             return ChatResponse(
                 response=response,
                 sources=source_results,
-                query=request.message
+                query=request.message,
+                evaluation_metrics={
+                    "latency": f"{int(total_time)}ms",
+                    "relevance": f"{avg_relevance:.2f}",
+                    "context_length": len(context.split())  # approximate token count
+                }
             )
+            
+        except HTTPException as he:
+            raise he
             
         except Exception as e:
             logger.error(f"Chat processing failed: {e}")
@@ -60,7 +82,8 @@ class ChatService:
             return ChatResponse(
                 response=self._get_fallback_response(request.message),
                 sources=[],
-                query=request.message
+                query=request.message,
+                evaluation_metrics=None
             )
     
     def _format_context(self, documents: List[dict], max_length: int) -> str:
@@ -101,18 +124,7 @@ class ChatService:
             logger.warning("LLM generation failed, using fallback")
             return self._get_fallback_response(question)
     
-    def _get_fallback_response(self, question: str) -> str:
-        """Get fallback response when LLM is unavailable"""
-        question_lower = question.lower()
-        
-        if "manager" in question_lower or "coach" in question_lower:
-            return "Based on the information available, Mikel Arteta is the current manager of Arsenal FC. He has been in charge since December 2019 and has led the team to significant success including FA Cup and Community Shield victories."
-        
-        elif "history" in question_lower or "founded" in question_lower:
-            return "Arsenal Football Club was founded in 1886 and is one of England's most successful clubs. The team has won numerous league titles, FA Cups, and European trophies throughout its rich history."
-        
-        elif "stadium" in question_lower or "emirates" in question_lower:
-            return "Arsenal currently plays at Emirates Stadium, which opened in 2006. The stadium has a capacity of over 60,000 spectators and is one of the premier football venues in England."
-        
-        else:
-            return f"I understand you're asking about: '{question}'. While I have access to Arsenal's knowledge base, I'm currently experiencing technical difficulties with my advanced AI capabilities. You can try asking about Arsenal's history, players, manager, or stadium for basic information."
+    def _get_fallback_response(self, query: str) -> str:
+        """Provide a simple fallback if the LLM fails."""
+        # Simple error message that the frontend can handle or display gracefully
+        return "I'm currently unable to generate a response due to high traffic or a temporary system issue. Please try again in a moment."
