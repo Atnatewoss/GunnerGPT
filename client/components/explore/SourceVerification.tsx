@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { DocumentResult } from "@/types/api";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 
@@ -48,6 +48,11 @@ export function SourceVerification({
 }: SourceVerificationProps) {
     const [expandedSource, setExpandedSource] = useState<number | null>(null);
     const [isMetricsExpanded, setIsMetricsExpanded] = useState(true);
+    const [traceId, setTraceId] = useState<string>('');
+
+    useEffect(() => {
+        setTraceId(Math.random().toString(36).substring(7).toUpperCase());
+    }, []);
 
     const steps = [
         { id: 1, label: "Query Processing", icon: Search, statusKey: 'queryReceived', doneLabel: "Query analyzed" },
@@ -271,7 +276,7 @@ export function SourceVerification({
 
             {/* Footer Status */}
             <div className="p-3 border-t border-border/50 bg-background/30 text-[9px] text-center text-muted-foreground font-mono">
-                <span className="opacity-50">TRACE_ID: {Math.random().toString(36).substring(7).toUpperCase()}</span>
+                {traceId && <span className="opacity-50">TRACE_ID: {traceId}</span>}
             </div>
         </div>
     );
