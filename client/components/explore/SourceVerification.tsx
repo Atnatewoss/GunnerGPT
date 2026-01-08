@@ -220,7 +220,7 @@ export function SourceVerification({
                 )}
 
                 {/* 3. Evaluation - Only render if metrics exist AND we have a valid response (not error) */}
-                {evaluationMetrics && evaluationMetrics.relevance && (
+                {evaluationMetrics && (evaluationMetrics.quality_score !== undefined || evaluationMetrics.relevance) && (
                     <section className="animate-in fade-in slide-in-from-bottom-4 duration-500 delay-300">
                         <button
                             onClick={() => setIsMetricsExpanded(!isMetricsExpanded)}
@@ -228,48 +228,127 @@ export function SourceVerification({
                         >
                             <span className="flex items-center">
                                 <Shield className="w-3 h-3 mr-2" />
-                                System Evaluation
+                                Quality Metrics
                             </span>
                             {isMetricsExpanded ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
                         </button>
 
                         {isMetricsExpanded && (
                             <div className="bg-card/50 border rounded-xl p-4 space-y-4">
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="space-y-1">
-                                        <div className="text-[9px] text-muted-foreground uppercase">Relevance</div>
-                                        <div className="text-sm font-mono font-semibold text-green-600">
-                                            {evaluationMetrics.relevance || '-'}
+                                {/* Overall Quality Score */}
+                                {evaluationMetrics.quality_score !== undefined && (
+                                    <div className="space-y-4 pb-4 border-b border-border/50">
+                                        <div className="flex justify-between items-center">
+                                            <span className="text-[9px] text-muted-foreground uppercase font-bold tracking-tight">Quality Score</span>
+                                            <span className={cn(
+                                                "text-lg font-mono font-bold leading-none",
+                                                evaluationMetrics.quality_score >= 0.8 ? "text-green-600" :
+                                                    evaluationMetrics.quality_score >= 0.6 ? "text-yellow-600" :
+                                                        "text-orange-600"
+                                            )}>
+                                                {(evaluationMetrics.quality_score * 100).toFixed(0)}%
+                                            </span>
                                         </div>
+                                        <Progress
+                                            value={evaluationMetrics.quality_score * 100}
+                                            className={cn(
+                                                "h-2",
+                                                evaluationMetrics.quality_score >= 0.8 ? "bg-green-100" :
+                                                    evaluationMetrics.quality_score >= 0.6 ? "bg-yellow-100" :
+                                                        "bg-orange-100"
+                                            )}
+                                        />
                                     </div>
+                                )}
+
+                                {/* Hallucination & Grounding */}
+                                <div className="grid grid-cols-2 gap-4">
+                                    {evaluationMetrics.hallucination_rate !== undefined && (
+                                        <div className="space-y-1">
+                                            <div className="text-[9px] text-muted-foreground uppercase">Hallucination</div>
+                                            <div className={cn(
+                                                "text-sm font-mono font-semibold",
+                                                evaluationMetrics.hallucination_rate < 0.2 ? "text-green-600" :
+                                                    evaluationMetrics.hallucination_rate < 0.4 ? "text-yellow-600" :
+                                                        "text-red-600"
+                                            )}>
+                                                {(evaluationMetrics.hallucination_rate * 100).toFixed(1)}%
+                                            </div>
+                                            <Progress
+                                                value={evaluationMetrics.hallucination_rate * 100}
+                                                className="h-1 bg-red-100"
+                                            />
+                                        </div>
+                                    )}
+
+                                    {evaluationMetrics.grounding_score !== undefined && (
+                                        <div className="space-y-1">
+                                            <div className="text-[9px] text-muted-foreground uppercase">Grounding</div>
+                                            <div className={cn(
+                                                "text-sm font-mono font-semibold",
+                                                evaluationMetrics.grounding_score >= 0.7 ? "text-green-600" :
+                                                    evaluationMetrics.grounding_score >= 0.5 ? "text-yellow-600" :
+                                                        "text-orange-600"
+                                            )}>
+                                                {(evaluationMetrics.grounding_score * 100).toFixed(0)}%
+                                            </div>
+                                            <Progress
+                                                value={evaluationMetrics.grounding_score * 100}
+                                                className="h-1 bg-green-100"
+                                            />
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Recall & Coverage */}
+                                <div className="grid grid-cols-2 gap-4">
+                                    {evaluationMetrics.recall_at_5 !== undefined && (
+                                        <div className="space-y-1">
+                                            <div className="text-[9px] text-muted-foreground uppercase">Recall@5</div>
+                                            <div className="text-sm font-mono font-semibold text-blue-600">
+                                                {(evaluationMetrics.recall_at_5 * 100).toFixed(0)}%
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {evaluationMetrics.coverage_score !== undefined && (
+                                        <div className="space-y-1">
+                                            <div className="text-[9px] text-muted-foreground uppercase">Coverage</div>
+                                            <div className="text-sm font-mono font-semibold text-purple-600">
+                                                {(evaluationMetrics.coverage_score * 100).toFixed(0)}%
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Performance & Citations */}
+                                <div className="grid grid-cols-2 gap-4 pt-3 border-t border-border/50">
                                     <div className="space-y-1">
-                                        <div className="text-[9px] text-muted-foreground uppercase">Query Time</div>
+                                        <div className="text-[9px] text-muted-foreground uppercase">Latency</div>
                                         <div className="text-sm font-mono font-semibold text-foreground">
                                             {evaluationMetrics.latency || '-'}
                                         </div>
                                     </div>
+
+                                    {evaluationMetrics.citation_rate !== undefined && (
+                                        <div className="space-y-1">
+                                            <div className="text-[9px] text-muted-foreground uppercase">Citations</div>
+                                            <div className="text-sm font-mono font-semibold text-foreground">
+                                                {evaluationMetrics.sources_cited || 0}/{evaluationMetrics.total_sources || 0}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Legacy Relevance (backward compatibility) */}
+                                {evaluationMetrics.relevance && !evaluationMetrics.quality_score && (
                                     <div className="space-y-1">
-                                        <div className="text-[9px] text-muted-foreground uppercase">Context</div>
-                                        <div className="text-sm font-mono font-semibold text-foreground">
-                                            {evaluationMetrics.context_length ? `${evaluationMetrics.context_length} tok` : '-'}
+                                        <div className="text-[9px] text-muted-foreground uppercase">Relevance</div>
+                                        <div className="text-sm font-mono font-semibold text-green-600">
+                                            {evaluationMetrics.relevance}
                                         </div>
                                     </div>
-                                    <div className="space-y-1">
-                                        <div className="text-[9px] text-muted-foreground uppercase">Model</div>
-                                        <div className="text-sm font-mono font-semibold text-foreground">
-                                            Gemini 1.5
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="pt-2 border-t border-border/50">
-                                    <div className="flex justify-between items-center text-[9px]">
-                                        <span className="text-muted-foreground">Hallucination Risk</span>
-                                        <span className="text-green-600 font-bold">
-                                            {evaluationMetrics.hallucination_rate || 'LOW (0.01%)'}
-                                        </span>
-                                    </div>
-                                    <Progress value={2} className="h-1 mt-1.5 bg-green-100" />
-                                </div>
+                                )}
                             </div>
                         )}
                     </section>

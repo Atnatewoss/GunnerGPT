@@ -8,6 +8,7 @@ from typing import List
 from fastapi import HTTPException
 from ..rag.retriever import retrieve_documents
 from ..rag.prompts import format_chat_prompt, SYSTEM_PROMPT
+from ..rag.evaluator import rag_evaluator
 from ..models.chat import DocumentResult, ChatRequest, ChatResponse
 from .llm_service import llm_service
 from ..core.rag_logger import RAGLogger
@@ -39,6 +40,7 @@ class ChatService:
                 query=request.message,
                 n_results=5
             )
+            RAGLogger.log_retrieved_documents(documents)
             
             # Format context from retrieved documents
             context = self._format_context(documents, request.context_length)
@@ -51,12 +53,25 @@ class ChatService:
             
             RAGLogger.log_llm_response(response, total_time)
             
-            # Calculate average relevance (1 - distance)
-            avg_relevance = 0.0
-            if documents:
-                distances = [doc.get("distance", 1.0) for doc in documents]
-                similarities = [1 - d for d in distances]
-                avg_relevance = sum(similarities) / len(similarities)
+            # Perform comprehensive evaluation
+            eval_metrics = rag_evaluator.evaluate_response(
+                query=request.message,
+                response=response,
+                retrieved_docs=documents
+            )
+            
+            # Add latency to evaluation metrics
+            eval_metrics['latency_ms'] = int(total_time)
+            eval_metrics['latency'] = f"{int(total_time)}ms"
+            eval_metrics['context_length'] = len(context.split())
+            
+            # Log evaluation results
+            logger.info(
+                f"Evaluation - Quality: {eval_metrics['quality_score']:.2f}, "
+                f"Hallucination: {eval_metrics['hallucination_rate']:.2f}, "
+                f"Grounding: {eval_metrics['grounding_score']:.2f}, "
+                f"Recall@5: {eval_metrics.get('recall_at_5', 0):.2f}"
+            )
             
             # Convert to DocumentResult models
             source_results = [
@@ -72,11 +87,7 @@ class ChatService:
                 response=response,
                 sources=source_results,
                 query=request.message,
-                evaluation_metrics={
-                    "latency": f"{int(total_time)}ms",
-                    "relevance": f"{avg_relevance:.2f}",
-                    "context_length": len(context.split())  # approximate token count
-                }
+                evaluation_metrics=eval_metrics
             )
             
         except HTTPException as he:
@@ -106,11 +117,6 @@ class ChatService:
             else:
                 # Add partial document if space allows
                 remaining_space = max_length - current_length
-                if remaining_space > 100:  # Only add if meaningful space remains
-                    truncated_text = doc_text[:remaining_space - 3] + "..."
-                    context_parts.append(truncated_text)
-                break
-        
                 if remaining_space > 100:  # Only add if meaningful space remains
                     truncated_text = doc_text[:remaining_space - 3] + "..."
                     context_parts.append(truncated_text)

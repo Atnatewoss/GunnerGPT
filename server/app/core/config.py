@@ -29,10 +29,13 @@ class Settings(BaseSettings):
     chroma_tenant: Optional[str] = None
     chroma_db: Optional[str] = None
     
-    # Gemini API
+    # LLM APIs
     gemini_api_key: Optional[str] = None
-    gemini_model: str = "gemini-2.0-flash-exp"
-    gemini_rate_limit_per_minute: int = 60
+    openai_api_key: Optional[str] = None
+    huggingface_api_key: Optional[str] = None
+    huggingface_model: str = "mistralai/Mistral-7B-Instruct-v0.2"
+    # gemini_model: str = "gemini-2.0-flash"  # Keep for reference but not primary
+    gemini_rate_limit_per_minute: int = 15
     gemini_rate_limit_per_day: int = 1500
     
     # API

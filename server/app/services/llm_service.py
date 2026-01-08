@@ -1,13 +1,12 @@
 """
-LLM service for Gemini API integration with rate limiting
+LLM service for Hugging Face Inference API integration with rate limiting
 """
 
 import asyncio
 import time
 import logging
 from typing import Optional, Dict, Any
-import google.genai as genai
-from fastapi import HTTPException
+from huggingface_hub import InferenceClient
 from fastapi import HTTPException
 from ..core.config import settings
 from ..core.rag_logger import RAGLogger
@@ -54,36 +53,40 @@ class RateLimiter:
 
 
 class LLMService:
-    """Service for LLM interactions with Gemini API"""
+    """Service for LLM interactions with Hugging Face Inference API"""
     
     def __init__(self):
+        # HF Free Tier has generous but variable limits. We'll set a safe default.
         self.rate_limiter = RateLimiter(
-            per_minute=settings.gemini_rate_limit_per_minute,
-            per_day=settings.gemini_rate_limit_per_day
+            per_minute=20,
+            per_day=1000
         )
-        self._client: Optional[genai.GenerativeModel] = None
+        self._client: Optional[InferenceClient] = None
         self._initialized = False
     
     async def initialize(self):
-        """Initialize the Gemini client"""
+        """Initialize the Hugging Face client"""
         try:
-            if not settings.gemini_api_key:
-                logger.warning("Gemini API key not provided. LLM features will be disabled.")
+            if not settings.huggingface_api_key:
+                logger.warning("Hugging Face API key not provided. LLM features will be disabled.")
                 return False
             
             # Initialize client with API key
-            self._client = genai.Client(api_key=settings.gemini_api_key)
+            self._client = InferenceClient(
+                model=settings.huggingface_model,
+                token=settings.huggingface_api_key
+            )
             self._initialized = True
-            logger.info(f"Initialized Gemini client with model: {settings.gemini_model}")
+            logger.info(f"Initialized Hugging Face client with model: {settings.huggingface_model}")
             return True
             
         except Exception as e:
-            logger.error(f"Failed to initialize Gemini client: {e}")
+            logger.error(f"Failed to initialize Hugging Face client: {e}")
             return False
     
     async def generate_response(self, prompt: str) -> Optional[str]:
         """
-        Generate response using Gemini API with rate limiting
+        Generate response using Hugging Face Inference API with rate limiting
         
         Args:
             prompt: The prompt to send to the LLM
@@ -95,50 +98,44 @@ class LLMService:
             if not await self.initialize():
                 return None
         
-        # Check rate limit
-        if not await self.rate_limiter.acquire():
-            return None
+        # Proactive rate limit check disabled by user request
+        # if not await self.rate_limiter.acquire():
+        #     return None
         
         try:
-            RAGLogger.log_llm_call(len(prompt), settings.gemini_model)
-            # Generate response using new SDK pattern
+            RAGLogger.log_llm_call(len(prompt), settings.huggingface_model)
+            
+            # Generate response using chat completion pattern
+            messages = [{"role": "user", "content": prompt}]
+            
+            # Hugging Face Inference API call
             response = await asyncio.to_thread(
-                self._client.models.generate_content,
-                model=settings.gemini_model,
-                contents=prompt
+                self._client.chat.completions.create,
+                messages=messages,
+                max_tokens=1000,
+                temperature=0.7
             )
             
-            # Robustly extract text following your JavaScript pattern
             text = ""
-            if response and hasattr(response, 'text'):
-                text = response.text
-            elif (hasattr(response, 'candidates') and 
-                  response.candidates and 
-                  len(response.candidates) > 0 and
-                  hasattr(response.candidates[0], 'content') and
-                  hasattr(response.candidates[0].content, 'parts') and
-                  len(response.candidates[0].content.parts) > 0 and
-                  hasattr(response.candidates[0].content.parts[0], 'text')):
-                text = response.candidates[0].content.parts[0].text
+            if response and response.choices:
+                text = response.choices[0].message.content
             
             if text:
                 cleaned_text = self._clean_response(text)
                 logger.info(f"Generated response of length: {len(cleaned_text)}")
                 return cleaned_text
             else:
-                logger.warning("Empty response from Gemini API")
+                logger.warning("Empty response from Hugging Face API")
                 return None
                 
         except Exception as e:
             error_message = str(e)
-            logger.error(f"Gemini API error: {error_message}")
+            logger.error(f"Hugging Face API error: {error_message}")
             
-            # Check for quota exceeded error
-            if ("quota exceeded" in error_message.lower() or 
-                "429" in error_message or 
-                "resource exhausted" in error_message.lower()):
-                logger.warning("API quota exceeded")
-                raise HTTPException(status_code=429, detail="Rate limit exceeded. Please try again later.")
+            # Check for specific HF errors
+            if "Too Many Requests" in error_message or "429" in error_message:
+                logger.warning("Hugging Face API quota exceeded")
+                raise HTTPException(status_code=429, detail="Hugging Face rate limit exceeded. Please try again later.")
             
             return None
     

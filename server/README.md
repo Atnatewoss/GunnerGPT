@@ -56,6 +56,10 @@ pip install -r requirements.txt
 CHROMA_API_KEY=your_chroma_api_key
 CHROMA_TENANT=your_tenant
 CHROMA_DB=your_database
+
+# Hugging Face Settings
+HUGGING_FACE_API_KEY=your_hf_api_key
+HUGGING_FACE_MODEL=mistralai/Mistral-7B-Instruct-v0.2
 ```
 
 4. Start the server:
@@ -138,10 +142,21 @@ Once the server is running, visit:
 Key configuration parameters in `app/core/config.py`:
 
 - `embedding_model_name`: "all-MiniLM-L6-v2"
+- `llm_model`: "mistralai/Mistral-7B-Instruct-v0.2" (via Hugging Face)
 - `chunk_size`: 600 characters
 - `chunk_overlap`: 120 characters
 - `collection_name`: "gunnergpt_arsenal_kb"
 - `kb_path`: "../arsenal_kb" (relative to server directory)
+
+## Evaluation Metrics
+
+GunnerGPT implements a principled RAG evaluation pipeline:
+
+- **Quality Score**: A weighted roll-up (40% Retrieval, 40% Grounding, 20% Coverage).
+- **Recall@5**: Retrieval effectiveness using a 0.3 similarity threshold.
+- **Hallucination Rate**: Sentence-level logic check against source grounding.
+- **Grounding Score**: N-gram phrase overlap between response and sources.
+- **Coverage**: Semantic satisfaction of query terms in the response.
 
 ## Knowledge Base Structure
 
